@@ -28,7 +28,7 @@
             <div>太阳赤经: {{ solarData.solarRightAscension.toFixed(3) }}°</div>
 			<div>太阳赤纬: {{ solarData.solarDeclination.toFixed(3) }}°</div>
 			<div>太阳时角: {{ solarData.solarHourAngle.toFixed(3) }}°</div>
-			<div>太阳方位角: {{ solarData.solarDirection.toFixed(3) }}°</div>
+			<div>太阳方位角: {{ solarData.solarDirection.toFixed(3) }}° ({{ directionDisplay }})</div>
 			<div>太阳高度角: {{ solarData.solarHeight.toFixed(3) }}°</div>
             <br>
             <div v-if="!solarData.dayLength.polarDay && !solarData.dayLength.polarNight">昼长: {{ dayLengthTime }}</div>
@@ -51,6 +51,7 @@ const currentTime = ref('');
 const dayLengthTime = ref('');
 const sunRiseTime = ref('');
 const sunSetTime = ref('');
+const directionDisplay = ref('');
 const solarData = ref({
     solarDeclination: 0,
     solarRightAscension: 0,
@@ -79,6 +80,27 @@ const updateData = (appData) => {
     
     solarData.value = appData.solarData;
     isNight.value = solarData.value.solarHeight < 0;
+
+    const direction = solarData.value.solarDirection;
+    if (direction < 22.5) {
+        directionDisplay.value = 'N';
+    } else if (direction < 67.5) {
+        directionDisplay.value = 'NE';
+    } else if (direction < 112.5) {
+        directionDisplay.value = 'E';
+    } else if (direction < 157.5) {
+        directionDisplay.value = 'SE';
+    } else if (direction < 202.5) {
+        directionDisplay.value = 'S';
+    } else if (direction < 247.5) {
+        directionDisplay.value = 'SW';
+    } else if (direction < 292.5) {
+        directionDisplay.value = 'W';
+    } else if (direction < 337.5) {
+        directionDisplay.value = 'NW';
+    } else {
+        directionDisplay.value = 'N';
+    } 
 
     if (!solarData.value.dayLength.polarDay && !solarData.value.dayLength.polarNight) {
         const dayLength = solarData.value.dayLength.dayLength;

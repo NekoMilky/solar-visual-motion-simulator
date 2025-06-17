@@ -94,8 +94,7 @@ const createScene = () => {
         const material = new THREE.MeshBasicMaterial({ 
             map: texture,
             alphaTest: 0.1,
-            transparent: true,
-            opacity: 0.7
+            transparent: true
         });
         shadowSphere = new THREE.Mesh(geometry, material);
         shadowSphere.position.set(0, 0, 0);
