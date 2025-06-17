@@ -275,6 +275,8 @@ const createScene = () => {
 		const height = solarData.solarHeight * Math.PI / 180;
 		const direction = (solarData.solarDirection - 90) * Math.PI / 180;
 		const latitude = appData.value.latitude * Math.PI / 180;
+
+        const isNight = height < 0;
 	
 		// 计算太阳显示位置
 		sun.position.x = GROUND_RADIUS * Math.cos(direction) * Math.cos(height);
@@ -322,7 +324,7 @@ const createScene = () => {
 			canvas.width = textWidth;
 			canvas.height = FONT_SIZE;
 			context.font = `${FONT_SIZE}px Arial`;
-			context.fillStyle = 'white';
+			context.fillStyle = isNight ? 'white' : 'black';
 			context.textBaseline = 'middle';
 			context.fillText(direction, 0, FONT_SIZE / 2);
 	
