@@ -81,26 +81,12 @@ const updateData = (appData) => {
     solarData.value = appData.solarData;
     isNight.value = solarData.value.solarHeight < 0;
 
-    const direction = solarData.value.solarDirection;
-    if (direction < 22.5) {
-        directionDisplay.value = 'N';
-    } else if (direction < 67.5) {
-        directionDisplay.value = 'NE';
-    } else if (direction < 112.5) {
-        directionDisplay.value = 'E';
-    } else if (direction < 157.5) {
-        directionDisplay.value = 'SE';
-    } else if (direction < 202.5) {
-        directionDisplay.value = 'S';
-    } else if (direction < 247.5) {
-        directionDisplay.value = 'SW';
-    } else if (direction < 292.5) {
-        directionDisplay.value = 'W';
-    } else if (direction < 337.5) {
-        directionDisplay.value = 'NW';
-    } else {
-        directionDisplay.value = 'N';
-    } 
+    let direction = solarData.value.solarDirection + 22.5;
+    if (direction >= 360) {
+        direction -= 360;
+    }
+    const directionText = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    directionDisplay.value = directionText[Math.floor(direction / 45)];
 
     if (!solarData.value.dayLength.polarDay && !solarData.value.dayLength.polarNight) {
         const dayLength = solarData.value.dayLength.dayLength;
