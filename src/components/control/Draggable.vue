@@ -53,7 +53,9 @@ const startDrag = (e) => {
         offsetY.value = parseFloat(getComputedStyle(element).top) || 0;
         
         document.addEventListener('mousemove', handleDrag);
+        document.addEventListener('touchmove', handleDrag);
         document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
     }
 };
 
