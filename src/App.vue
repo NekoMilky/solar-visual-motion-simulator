@@ -106,7 +106,7 @@ import InformationDisplay from './components/control/InformationDisplay.vue';
 import LocationControl from './components/control/Location.vue';
 import TimeControl from './components/control/Time.vue';
 import { subscribeData } from './components/AppData.js';
-import { subscribeSetting, toggleGroundScene, toggleEarthScene, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting';
+import { subscribeSetting, toggleGroundScene, toggleEarthScene, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting.js';
 
 const appSetting = ref({
     isGroundSceneToggle: true,

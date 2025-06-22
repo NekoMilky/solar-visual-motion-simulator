@@ -33,7 +33,7 @@ const getSolarDeclination = (date = new Date(), timeZone) => {
     return delta;
 };
 
-// 计算太阳赤经
+// 计算太阳直射点经度
 const getSolarRightAscension = (date = new Date(), timeZone) => {
     const year = date.getFullYear();
     const month = date.getMonth();

@@ -26,7 +26,7 @@
             ></button><br>
 			<div>信息显示:</div>
 			<div>时间: {{ currentTime }}</div>
-            <div>太阳赤经: {{ solarData.solarRightAscension.toFixed(3) }}°</div>
+            <div>太阳直射点经度: {{ solarData.solarRightAscension.toFixed(3) }}°</div>
 			<div>太阳赤纬: {{ solarData.solarDeclination.toFixed(3) }}°</div>
 			<div>太阳时角: {{ solarData.solarHourAngle.toFixed(3) }}°</div>
 			<div>太阳方位角: {{ solarData.solarDirection.toFixed(3) }}° ({{ directionDisplay }})</div>
