@@ -6,7 +6,7 @@
 			@mouseenter="draggableRef?.setButtonShow(true)" 
 			@mouseleave="draggableRef?.setButtonShow(false)" 
 			@mousedown="draggableRef?.startDrag($event)"
-            @touchstart="draggableRef?.startDrag($event)"
+            @touchstart="draggableRef?.handleTouch($event)"
 			:class="{
 				'floating-box-day': !isNight,
 				'floating-box-night': isNight,

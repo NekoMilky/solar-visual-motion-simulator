@@ -46,24 +46,46 @@ const toggleDraggable = () => {
 
 const startDrag = (e) => {
     if (isDraggable.value) {
-        startX.value = e.clientX ?? e.touches[0].clientX;
-        startY.value = e.clientY ?? e.touches[0].clientY;
-        const element = document.querySelector(`.${className.value}`);
-        offsetX.value = parseFloat(getComputedStyle(element).left) || 0;
-        offsetY.value = parseFloat(getComputedStyle(element).top) || 0;
-
         e.preventDefault();
+
+        let clientX, clientY;
+        if (e.type === 'touchstart') {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        startX.value = clientX;
+        startY.value = clientY;
+        offsetX.value = currentLeft.value;
+        offsetY.value = currentTop.value;
         
-        document.addEventListener('mousemove', handleDrag);
-        document.addEventListener('touchmove', handleDrag, { passive: false });
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
+        if (e.type === 'touchstart') {
+            document.addEventListener('touchmove', handleDrag);
+            document.addEventListener('touchend', stopDrag, { once: true });
+        } else {
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', stopDrag, { once: true });
+        }
     }
 };
 
 const handleDrag = (e) => {
-    const dx = e.clientX ?? e.touches[0].clientX - startX.value;
-    const dy = e.clientY ?? e.touches[0].clientY - startY.value;
+    e.preventDefault();
+
+    let clientX, clientY;
+    if (e.type === 'touchmove') {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    const dx = clientX - startX.value;
+    const dy = clientY - startY.value;
+
     const element = document.querySelector(`.${className.value}`);
     if (element) {
         const elementWidth = element.offsetWidth;
@@ -88,17 +110,32 @@ const handleDrag = (e) => {
 
         element.style.left = `${currentLeft.value}px`;
         element.style.top = `${currentTop.value}px`;
-
-        e.preventDefault();
     }
 };
 
 const stopDrag = () => {
     safeLocalStorage.set(`${pathName.value}_left`, currentLeft.value);
     safeLocalStorage.set(`${pathName.value}_top`, currentTop.value);
+
     document.removeEventListener('mousemove', handleDrag);
+    document.removeEventListener('touchmove', handleDrag);
     document.removeEventListener('mouseup', stopDrag);
+    document.removeEventListener('touchend', stopDrag);
 };
+
+const handleTouch = (e) => {
+    setButtonShow(true);
+    // 点击按钮
+    const target = e.target;
+    if (target.classList.contains('drag-button')) {
+        return;
+    }
+    startDrag(e);
+    // 3秒后自动隐藏
+    setTimeout(() => {
+        setButtonShow(false);
+    }, 3000); 
+}
 
 onBeforeUnmount(() => {
     stopDrag();
@@ -110,7 +147,8 @@ defineExpose({
     setButtonShow,
     setClassName,
     toggleDraggable,
-    startDrag
+    startDrag,
+    handleTouch
 });
 </script>
 

@@ -6,7 +6,7 @@
 		    @mouseenter="draggableRef?.setButtonShow(true)" 
 		    @mouseleave="draggableRef?.setButtonShow(false)" 
 		    @mousedown="draggableRef?.startDrag($event)"
-            @touchstart="draggableRef?.startDrag($event)"
+            @touchstart="draggableRef?.handleTouch($event)"
 		    :class="{
 			    'floating-box-day': !isNight,
 			    'floating-box-night': isNight,
@@ -235,7 +235,9 @@ const initEarthScene = () => {
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     containerElement.appendChild(renderer.domElement);
     renderer.domElement.addEventListener('mousedown', onDragStart);
+    renderer.domElement.addEventListener('touchstart', onDragStart);
     renderer.domElement.addEventListener('mouseup', onDragEnd);
+    renderer.domElement.addEventListener('touchend', onDragEnd);
 
     // 添加轨道控制器
     controls = new OrbitControls(camera, renderer.domElement);
@@ -267,7 +269,9 @@ const initEarthScene = () => {
 
         if (containerElement && renderer?.domElement) {
             renderer.domElement.removeEventListener('mousedown', onDragStart);
+            renderer.domElement.removeEventListener('touchstart', onDragStart);
             renderer.domElement.removeEventListener('mouseup', onDragEnd);
+            renderer.domElement.removeEventListener('touchend', onDragEnd);
             containerElement.removeChild(renderer.domElement);
         }
         renderer?.dispose();
