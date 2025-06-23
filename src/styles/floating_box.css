@@ -1,4 +1,5 @@
 .floating-box {
+    touch-action: none;
     position: absolute;
     padding: 15px;
     border-radius: 15px;

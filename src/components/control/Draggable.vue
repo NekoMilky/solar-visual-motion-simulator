@@ -46,22 +46,24 @@ const toggleDraggable = () => {
 
 const startDrag = (e) => {
     if (isDraggable.value) {
-        startX.value = e.clientX;
-        startY.value = e.clientY;
+        startX.value = e.clientX ?? e.touches[0].clientX;
+        startY.value = e.clientY ?? e.touches[0].clientY;
         const element = document.querySelector(`.${className.value}`);
         offsetX.value = parseFloat(getComputedStyle(element).left) || 0;
         offsetY.value = parseFloat(getComputedStyle(element).top) || 0;
+
+        e.preventDefault();
         
         document.addEventListener('mousemove', handleDrag);
-        document.addEventListener('touchmove', handleDrag);
+        document.addEventListener('touchmove', handleDrag, { passive: false });
         document.addEventListener('mouseup', stopDrag);
         document.addEventListener('touchend', stopDrag);
     }
 };
 
 const handleDrag = (e) => {
-    const dx = e.clientX - startX.value;
-    const dy = e.clientY - startY.value;
+    const dx = e.clientX ?? e.touches[0].clientX - startX.value;
+    const dy = e.clientY ?? e.touches[0].clientY - startY.value;
     const element = document.querySelector(`.${className.value}`);
     if (element) {
         const elementWidth = element.offsetWidth;
@@ -86,6 +88,8 @@ const handleDrag = (e) => {
 
         element.style.left = `${currentLeft.value}px`;
         element.style.top = `${currentTop.value}px`;
+
+        e.preventDefault();
     }
 };
 
