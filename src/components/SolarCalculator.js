@@ -86,21 +86,16 @@ const getSolarHeight = (latitude, declination, hourAngle) => {
 }
 
 // 计算太阳方位角
-const getSolarDirection = (latitude, declination, hourAngle, height) => {
+const getSolarDirection = (latitude, declination, hourAngle) => {
     const phi = latitude * Math.PI / 180;
     const delta = declination * Math.PI / 180;
     const t = hourAngle * Math.PI / 180;
-    const theta = height * Math.PI / 180;
 
-    let d = Math.acos(
-        ( 
-            Math.sin(delta) * Math.cos(phi) -
-            Math.cos(t) * Math.cos(delta) * Math.sin(phi)
-        ) /
-        Math.cos(theta)
-    );
-    if (t > 0) {
-        d = 2 * Math.PI - d;
+    const y = Math.sin(t);
+    const x = Math.cos(t) * Math.sin(phi) - Math.tan(delta) * Math.cos(phi);
+    let d = Math.atan2(y, x) + Math.PI;
+    if (d >= 2 * Math.PI) {
+        d -= 2 * Math.PI;
     }
 
     return d * 180 / Math.PI;
@@ -167,7 +162,7 @@ const calculateSolarData = (longitude, latitude, date = new Date(), timeZone) =>
     const rightAscension = getSolarRightAscension(date, timeZone);
     const hourAngle = getSolarHourAngle(date, longitude, timeZone);
     const height = getSolarHeight(latitude, declination, hourAngle);
-    const direction = getSolarDirection(latitude, declination, hourAngle, height);
+    const direction = getSolarDirection(latitude, declination, hourAngle);
     const dayLength = getDayLength(longitude, latitude, declination, timeZone);
 
     return {
