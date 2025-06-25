@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import earthTexture from '@/img/img_earth_surface.png';
+import earthTexture from '@/img/texture/earth_surface.jpg';
 import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';

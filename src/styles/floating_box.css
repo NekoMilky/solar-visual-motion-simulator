@@ -36,19 +36,19 @@
 }
 
 .drag-button-day-lock {
-    background-image: url(@/img/day/icon_lock.png);
+    background-image: url(@/img/icon/lock_day.png);
 }
 
 .drag-button-night-lock {
-    background-image: url(@/img/night/icon_lock.png);
+    background-image: url(@/img/icon/lock_night.png);
 }
 
 .drag-button-day-unlock {
-    background-image: url(@/img/day/icon_unlock.png);
+    background-image: url(@/img/icon/unlock_day.png);
 }
 
 .drag-button-night-unlock {
-    background-image: url(@/img/night/icon_unlock.png);
+    background-image: url(@/img/icon/unlock_night.png);
 }
 
 .input-day {

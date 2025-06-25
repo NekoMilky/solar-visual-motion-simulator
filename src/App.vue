@@ -197,42 +197,42 @@ onMounted(() => {
 }
 
 .toggle-information-display {
-    background-image: url(@/img/icon_information.png);
+    background-image: url(@/img/icon/information.png);
 }
 
 .toggle-location-control {
-    background-image: url(@/img/icon_location.png);
+    background-image: url(@/img/icon/location.png);
 }
 
 .toggle-time-control {
-    background-image: url(@/img/icon_time.png);
+    background-image: url(@/img/icon/time.png);
 }
 
 .toggle-ground-scene {
-    background-image: url(@/img/icon_ground_scene.png);
+    background-image: url(@/img/icon/ground_scene.png);
 }
 
 .toggle-sun-trajectory {
-    background-image: url(@/img/icon_sun_trajectory.png);
+    background-image: url(@/img/icon/sun_trajectory.png);
 }
 
 .toggle-pole-star-pointer {
-    background-image: url(@/img/icon_pole_star_pointer.png);
+    background-image: url(@/img/icon/pole_star_pointer.png);
 }
 
 .toggle-earth-scene {
-    background-image: url(@/img/icon_earth_scene.png);
+    background-image: url(@/img/icon/earth_scene.png);
 }
 
 .toggle-pin {
-    background-image: url(@/img/icon_pin.png);
+    background-image: url(@/img/icon/pin.png);
 }
 
 .toggle-grid {
-    background-image: url(@/img/icon_grid.png);
+    background-image: url(@/img/icon/grid.png);
 }
 
 .toggle-sun-ray-pointer {
-    background-image: url(@/img/icon_sun_ray_pointer.png);
+    background-image: url(@/img/icon/sun_ray_pointer.png);
 }
 </style>

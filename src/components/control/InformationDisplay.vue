@@ -71,13 +71,18 @@ const isNight = ref(false);
 
 const updateData = (appData) => {
     const date = appData.date;
-
+    const dateHours = date.getHours();
+    const dateMinutes = date.getMinutes();
+    const dateSeconds = date.getSeconds();
+    const dateFormattedHours = dateHours.toString().padStart(2, '0');
+    const dateFormattedMinutes = dateMinutes.toString().padStart(2, '0');
+    const dateFormattedSeconds = dateSeconds.toString().padStart(2, '0');
     const timeZone = appData.timeZone;
     const timeZoneHours = Math.floor(Math.abs(timeZone));
-    const timeZoneMinutes = Math.abs(timeZone) % 1 * 60;
+    const timeZoneMinutes = Math.floor(Math.abs(timeZone) % 1 * 60);
     const timeZoneFormattedHours = timeZoneHours.toString().padStart(2, '0');
     const timeZoneFormattedMinutes = timeZoneMinutes.toString().padStart(2, '0');
-    currentTime.value = `${date.toLocaleString()} UTC${timeZone < 0 ? '-' : '+'}${timeZoneFormattedHours}:${timeZoneFormattedMinutes}`;
+    currentTime.value = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${dateFormattedHours}:${dateFormattedMinutes}:${dateFormattedSeconds} UTC${timeZone < 0 ? '-' : '+'}${timeZoneFormattedHours}:${timeZoneFormattedMinutes}`;
     
     solarData.value = appData.solarData;
     isNight.value = solarData.value.solarHeight < 0;

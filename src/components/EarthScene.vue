@@ -3,8 +3,8 @@
 </template>
 
 <script setup>
-import earthTexture from '@/img/img_earth_surface.png';
-import shadowTexture from '@/img/img_shadow.png';
+import earthTexture from '@/img/texture/earth_surface.jpg';
+import shadowTexture from '@/img/texture/shadow.png';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { onMounted, onUnmounted, ref } from 'vue';
