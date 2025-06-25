@@ -9,9 +9,10 @@ const getObliquityOfEcliptic = (date = new Date()) => {
 };
 
 // 计算太阳赤纬
-const getSolarDeclination = (date = new Date(), timeZone) => {
-    const year = date.getFullYear();
+const getSolarDeclination = (date = new Date(), obliquityOfEcliptic, timeZone) => {
+    const epsilon = obliquityOfEcliptic * Math.PI / 180;
 
+    const year = date.getFullYear();
     const offset = timeZone * 3600000;
     const startOfTheYear = new Date(year, 0, 1, 0, 0, 0);
     const msPerDay = 24 * 60 * 60 * 1000;
@@ -22,15 +23,9 @@ const getSolarDeclination = (date = new Date(), timeZone) => {
 
     const theta = 2 * Math.PI * t / 365.2422;
 
-    const delta = 0.3723 + 
-                  23.2567 * Math.sin(theta) + 
-                  0.1149 * Math.sin(2 * theta) - 
-                  0.1712 * Math.sin(3 * theta) -
-                  0.758 * Math.cos(theta) +
-                  0.3656 * Math.cos(2 * theta) +
-                  0.0201 * Math.cos(3 * theta);
+    const delta = Math.asin(Math.sin(epsilon) * Math.sin(theta));
 
-    return delta;
+    return delta * 180 / Math.PI;
 };
 
 // 计算太阳直射点经度
@@ -158,7 +153,7 @@ const getDayLength = (longitude, latitude, declination, timeZone) => {
 // 返回数据
 const calculateSolarData = (longitude, latitude, date = new Date(), timeZone) => {
     const obliquityOfEcliptic = getObliquityOfEcliptic(date);
-    const declination = getSolarDeclination(date, timeZone);
+    const declination = getSolarDeclination(date, obliquityOfEcliptic, timeZone);
     const rightAscension = getSolarRightAscension(date, timeZone);
     const hourAngle = getSolarHourAngle(date, longitude, timeZone);
     const height = getSolarHeight(latitude, declination, hourAngle);
