@@ -77,14 +77,16 @@ const checkTime = (immediate) => {
         if (timeSync) {
             const tempDate = new Date();
             utcDate = new Date(tempDate.getTime() + tempDate.getTimezoneOffset() * 60000);
+            notifyDataSubscribers();
         } else if (Math.abs(timeLapse) == 1) {
             utcDate = new Date(utcDate.getTime() + timeLapse * 1000);
+            notifyDataSubscribers();
         }
     }
     if (Math.abs(timeLapse) > 1) {
         utcDate = new Date(utcDate.getTime() + timeLapse * 10000 * Math.pow(4, Math.abs(timeLapse) - 2));
+        notifyDataSubscribers();
     }
-    notifyDataSubscribers();
 }
 checkTime(true);
 setInterval(checkTime, 1000 / fps);

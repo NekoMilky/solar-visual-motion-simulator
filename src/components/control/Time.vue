@@ -1,180 +1,110 @@
 <template>
-    <div>
-        <Draggable ref="draggableRef"/>
-		<div 
-            class="floating-box time-control"
-		    @mouseenter="draggableRef?.setButtonShow(true)" 
-		    @mouseleave="draggableRef?.setButtonShow(false)" 
-		    @mousedown="draggableRef?.startDrag($event)"
-            @touchstart="draggableRef?.handleTouch($event)"
-		    :class="{
-			    'floating-box-day': !isNight,
-			    'floating-box-night': isNight,
-			    'floating-box-draggable': draggableRef?.isDraggable
-		    }"
-        >
-			<button 
-                class="drag-button" 
-			    v-if="draggableRef?.isButtonShow" 
-			    @click="draggableRef?.toggleDraggable"
-			    :class="{
-				    'drag-button-day-lock': !isNight && draggableRef?.isDraggable,
-				    'drag-button-night-lock': isNight && draggableRef?.isDraggable,
-				    'drag-button-day-unlock': !isNight && !draggableRef?.isDraggable,
-				    'drag-button-night-unlock': isNight && !draggableRef?.isDraggable
-			    }"
-            ></button><br>
-			<div>时间设置:</div>
-			<div>
-				日期:
-				<input 
-                    type="number" 
-				    v-model.number="date.year" 
-				    ref="yearInput"
-				    @input="updateDate"
-				    min="1970" 
-				    max="9999" 
-				    step="1" 
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-				/
-				<input 
-                    type="number" 
-				    v-model.number="date.month" 
-				    ref="monthInput"
-				    @input="updateDate"
-				    min="1" 
-				    max="12" 
-				    step="1" 
-				    :class="{
-				    	'input-day': !isNight,
-				    	'input-night': isNight
-				    }"
-                >
-				/
-				<input 
-                    type="number" 
-				    v-model.number="date.date" 
-				    ref="dateInput"
-				    @input="updateDate"
-				    min="1" 
-				    :max="date.daysOfMonth"
-				    step="1" 
-				    :class="{
-				    	'input-day': !isNight,
-				    	'input-night': isNight
-				    }"
-                >
-			</div>
-			<div>
-				时刻:
-				<input 
-                    type="number" 
-				    v-model.number="date.hour"
-				    ref="hourInput"
-				    @input="updateDate"
-				    min="0"
-				    max="23"
-				    step="1"
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-				:
-				<input 
-                    type="number" 
-				    v-model.number="date.minute"
-				    ref="minuteInput"
-				    @input="updateDate"
-				    min="0"
-				    max="59"
-				    step="1"
-				    :class="{
-				    	'input-day': !isNight,
-				    	'input-night': isNight
-				    }"
-                >
-				:
-				<input 
-                    type="number" 
-				    v-model.number="date.second"
-				    ref="secondInput"
-				    @input="updateDate"
-				    min="0"
-				    max="59"
-				    step="1"
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-			</div>
-			<div>
-				使用时区(UTC):
-				<input 
-                    type="number" 
-				    v-model.number="timeZone" 
-				    ref="timeZoneInput"
-				    @input="updateTimeZone"
-				    min="-12" 
-				    max="12" 
-				    step="0.5" 
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-			</div>
-			<div>
-				时间流逝倍率: 
-				<input 
-                    type="number" 
-				    v-model.number="timeLapse" 
-				    ref="timeLapseInput"
-				    @input="updateTimeLapse"
-				    min="-9" 
-				    max="9" 
-				    step="1" 
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-				倍
-			</div>
-			<div>
-				同步现实时间:
-				<input 
-                    type="checkbox"
-				    v-model="timeSync"
-				    @change="toggleTimeSync"
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-			</div>
-		</div>
-    </div>
+    <Draggable ref="draggableRef" :isNight="isNight" customClass="time-control">
+        <div>时间设置:</div>
+        <div>
+            日期:
+            <InputField 
+                v-model="date.year" 
+                :min="1970" 
+                :max="9999" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="yearInput"
+            />
+            /
+            <InputField 
+                v-model="date.month" 
+                :min="1" 
+                :max="12" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="monthInput"
+            />
+            /
+            <InputField 
+                v-model="date.date" 
+                :min="1" 
+                :max="date.daysOfMonth" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="dateInput"
+            />
+        </div>
+        <div>
+            时刻:
+            <InputField 
+                v-model="date.hour" 
+                :min="0" 
+                :max="23" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="hourInput"
+            />
+            :
+            <InputField 
+                v-model="date.minute" 
+                :min="0" 
+                :max="59" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="minuteInput"
+            />
+            :
+            <InputField 
+                v-model="date.second" 
+                :min="0" 
+                :max="59" 
+                :isNight="isNight" 
+                @input="updateDate"
+                ref="secondInput"
+            />
+        </div>
+        <div>
+            使用时区(UTC):
+            <InputField 
+                v-model="timeZone" 
+                :min="-12" 
+                :max="12" 
+                :step="0.5" 
+                :isNight="isNight" 
+                @input="updateTimeZone"
+                ref="timeZoneInput"
+            />
+        </div>
+        <div>
+            时间流逝倍率: 
+            <InputField 
+                v-model="timeLapse" 
+                :min="-9" 
+                :max="9" 
+                :isNight="isNight" 
+                @input="updateTimeLapse"
+                ref="timeLapseInput"
+            />
+            倍
+        </div>
+        <div>
+            同步现实时间:
+            <input
+                type="checkbox"
+                v-model="timeSync"
+                @change="toggleTimeSync"
+                :class="{
+                    'input-day': !isNight,
+                    'input-night': isNight
+                }"
+            >
+        </div>
+    </Draggable>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { subscribeData, setDate, setTimeLapse, setTimeSync, setTimeZone } from '../AppData.js';
 import Draggable from './Draggable.vue';
+import InputField from './InputField.vue';
 
 const draggableRef = ref(null);
-
-const date = ref({})
-const timeZone = ref(0);
-const timeSync = ref(true);
-const timeLapse = ref(0);
-const isNight = ref(false);
-
 const yearInput = ref(null);
 const monthInput = ref(null);
 const dateInput = ref(null);
@@ -183,6 +113,12 @@ const minuteInput = ref(null);
 const secondInput = ref(null);
 const timeZoneInput = ref(null);
 const timeLapseInput = ref(null);
+
+const date = ref({})
+const timeZone = ref(0);
+const timeSync = ref(true);
+const timeLapse = ref(0);
+const isNight = ref(false);
 
 const updateDate = () => {
     setDate(new Date(
@@ -209,14 +145,14 @@ const toggleTimeSync = () => {
 
 const updateData = (appData) => {
     const activeElement = document.activeElement;
-    const isEditingYear = yearInput.value === activeElement;
-    const isEditingMonth = monthInput.value === activeElement;
-    const isEditingDate = dateInput.value === activeElement;
-    const isEditingHour = hourInput.value === activeElement;
-    const isEditingMinute = minuteInput.value === activeElement;
-    const isEditingSecond = secondInput.value === activeElement;
-    const isEditingTimeZone = timeZoneInput.value === activeElement;
-    const isEditingTimeLapse = timeLapseInput.value === activeElement;
+    const isEditingYear = yearInput.value?.$el === activeElement;
+    const isEditingMonth = monthInput.value?.$el === activeElement;
+    const isEditingDate = dateInput.value?.$el === activeElement;
+    const isEditingHour = hourInput.value?.$el === activeElement;
+    const isEditingMinute = minuteInput.value?.$el === activeElement;
+    const isEditingSecond = secondInput.value?.$el === activeElement;
+    const isEditingTimeZone = timeZoneInput.value?.$el === activeElement;
+    const isEditingTimeLapse = timeLapseInput.value?.$el === activeElement;
 
     const dateObject = appData.date;
     if (!isEditingYear) {
@@ -267,11 +203,5 @@ onMounted(() => {
 <style scoped>
 input {
     width: 60px;
-    padding: 3px;
-    margin: 3px;
-    background-color: transparent;
-    border: none;
-    font-size: 16px;
-    text-align: center;
 }
 </style>

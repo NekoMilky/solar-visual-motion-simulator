@@ -1,44 +1,19 @@
 <template>
-    <div>
-        <Draggable ref="draggableRef"/>
-		<div 
-            class="floating-box information-display" 
-			@mouseenter="draggableRef?.setButtonShow(true)" 
-			@mouseleave="draggableRef?.setButtonShow(false)" 
-			@mousedown="draggableRef?.startDrag($event)"
-            @touchstart="draggableRef?.handleTouch($event)"
-			:class="{
-				'floating-box-day': !isNight,
-				'floating-box-night': isNight,
-				'floating-box-draggable': draggableRef?.isDraggable
-			}"
-		>
-			<button 
-                class="drag-button" 
-			    v-if="draggableRef?.isButtonShow" 
-			    @click="draggableRef?.toggleDraggable"
-			    :class="{
-				    'drag-button-day-lock': !isNight && draggableRef?.isDraggable,
-				    'drag-button-night-lock': isNight && draggableRef?.isDraggable,
-				    'drag-button-day-unlock': !isNight && !draggableRef?.isDraggable,
-				    'drag-button-night-unlock': isNight && !draggableRef?.isDraggable
-			    }"
-            ></button><br>
-			<div>信息显示:</div>
-			<div>时间: {{ currentTime }}</div>
-            <div>太阳直射点经度: {{ solarData.solarPosition?.longitude.toFixed(3) }}°</div>
-			<div>太阳直射点纬度: {{ solarData.solarPosition?.latitude.toFixed(3) }}°</div>
-			<div>太阳时角: {{ solarData.solarHourAngle?.toFixed(3) }}°</div>
-			<div>太阳方位角: {{ solarData.solarDirection?.toFixed(3) }}° ({{ directionDisplay }})</div>
-			<div>太阳高度角: {{ solarData.solarHeight?.toFixed(3) }}°</div>
-            <br>
-            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">昼长: {{ dayLengthTime }}</div>
-            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日出时间: {{ sunRiseTime }}</div>
-            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日落时间: {{ sunSetTime }}</div>
-            <div v-if="solarData.dayLength?.polarDay">极昼</div>
-            <div v-if="solarData.dayLength?.polarNight">极夜</div>
-		</div>
-    </div>
+    <Draggable ref="draggableRef" :isNight="isNight" customClass="information-display">
+		<div>信息显示:</div>
+		<div>时间: {{ currentTime }}</div>
+        <div>太阳直射点经度: {{ solarData.solarPosition?.longitude.toFixed(3) }}°</div>
+		<div>太阳直射点纬度: {{ solarData.solarPosition?.latitude.toFixed(3) }}°</div>
+		<div>太阳时角: {{ solarData.solarHourAngle?.toFixed(3) }}°</div>
+		<div>太阳方位角: {{ solarData.solarDirection?.toFixed(3) }}° ({{ directionDisplay }})</div>
+		<div>太阳高度角: {{ solarData.solarHeight?.toFixed(3) }}°</div>
+        <br>
+        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">昼长: {{ dayLengthTime }}</div>
+        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日出时间: {{ sunRiseTime }}</div>
+        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日落时间: {{ sunSetTime }}</div>
+        <div v-if="solarData.dayLength?.polarDay">极昼</div>
+        <div v-if="solarData.dayLength?.polarNight">极夜</div>
+    </Draggable>
 </template>
 
 <script setup>

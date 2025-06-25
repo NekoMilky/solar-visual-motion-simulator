@@ -1,9 +1,49 @@
 <template>
+    <div 
+        class="floating-box"
+		@mouseenter="setButtonShow(true)" 
+		@mouseleave="setButtonShow(false)" 
+		@mousedown="startDrag($event)"
+        @touchstart="handleTouch($event)"
+		:class="[
+            {
+			    'floating-box-day': !isNight,
+			    'floating-box-night': isNight,
+			    'floating-box-draggable': isDraggable
+		    },
+            customClass
+        ]"
+    >
+		<button 
+            class="drag-button" 
+			v-if="isButtonShow" 
+			@click="toggleDraggable"
+			:class="{
+			    'drag-button-day-lock': !isNight && isDraggable,
+			    'drag-button-night-lock': isNight && isDraggable,
+			    'drag-button-day-unlock': !isNight && !isDraggable,
+			    'drag-button-night-unlock': isNight && !isDraggable
+			}"
+        >
+        </button><br>
+        <slot></slot>
+    </div>
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount } from 'vue';
+import { ref, onBeforeUnmount, defineProps } from 'vue';
 import { safeLocalStorage } from '../SafeLocalStorage.js';
+
+const props = defineProps({
+    isNight: {
+        type: Boolean,
+        default: false
+    },
+    customClass: {
+        type: String,
+        default: ''
+    }
+});
 
 const isButtonShow = ref(false);
 const isDraggable = ref(false);
@@ -17,6 +57,35 @@ const currentTop = ref(0);
 const className = ref('');
 const pathName = ref('');
 
+let element;
+
+const handleWindowResize = () => {
+    if (element) {
+        const elementWidth = element.offsetWidth;
+        const elementHeight = element.offsetHeight;
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight - 60;
+
+        if (currentLeft.value < 0) {
+            currentLeft.value = 0;
+        } else if (currentLeft.value > screenWidth - elementWidth) {
+            currentLeft.value = screenWidth - elementWidth;
+        }
+
+        if (currentTop.value < 0) {
+            currentTop.value = 0;
+        } else if (currentTop.value > screenHeight - elementHeight) {
+            currentTop.value = screenHeight - elementHeight;
+        }
+
+        element.style.left = `${currentLeft.value}px`;
+        element.style.top = `${currentTop.value}px`;
+
+        safeLocalStorage.set(`${pathName.value}_left`, currentLeft.value);
+        safeLocalStorage.set(`${pathName.value}_top`, currentTop.value);
+    }
+}
+
 const setButtonShow = (val) => {
     isButtonShow.value = val;
 }
@@ -29,11 +98,12 @@ const setClassName = (cName, pName) => {
     currentLeft.value = safeLocalStorage.get(`${pathName.value}_left`) ?? 0;
     currentTop.value = safeLocalStorage.get(`${pathName.value}_top`) ?? 0;
 
-    const element = document.querySelector(`.${className.value}`);
+    element = document.querySelector(`.${className.value}`);
     if (element) {
         element.style.left = `${currentLeft.value}px`;
         element.style.top = `${currentTop.value}px`;
     }
+    window.addEventListener('resize', handleWindowResize);
 };
 
 const toggleDraggable = () => {
@@ -86,7 +156,6 @@ const handleDrag = (e) => {
     const dx = clientX - startX.value;
     const dy = clientY - startY.value;
 
-    const element = document.querySelector(`.${className.value}`);
     if (element) {
         const elementWidth = element.offsetWidth;
         const elementHeight = element.offsetHeight;
@@ -139,18 +208,66 @@ const handleTouch = (e) => {
 
 onBeforeUnmount(() => {
     stopDrag();
+    window.removeEventListener('resize', handleWindowResize);
 });
 
 defineExpose({
-    isButtonShow,
     isDraggable,
-    setButtonShow,
-    setClassName,
-    toggleDraggable,
-    startDrag,
-    handleTouch
+    setClassName
 });
 </script>
 
-<stype scoped>
-</stype>
+<style scoped>
+.floating-box {
+    touch-action: none;
+    position: absolute;
+    padding: 15px;
+    border-radius: 15px;
+    transition: background-color 0.3s, opacity 0.3s, color 0.3s;
+    user-select: none;
+    font-size: 16px;
+    background-color: transparent;
+}
+
+.floating-box-draggable {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.floating-box-day {
+    color: rgb(0, 0, 0);
+}
+
+.floating-box-night {
+    color: rgb(255, 255, 255);
+}
+
+.drag-button {
+    pointer-events: auto;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 24px;
+    height: 24px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    border: none;
+}
+
+.drag-button-day-lock {
+    background-image: url(@/img/icon/lock_day.png);
+}
+
+.drag-button-night-lock {
+    background-image: url(@/img/icon/lock_night.png);
+}
+
+.drag-button-day-unlock {
+    background-image: url(@/img/icon/unlock_day.png);
+}
+
+.drag-button-night-unlock {
+    background-image: url(@/img/icon/unlock_night.png);
+}
+</style>

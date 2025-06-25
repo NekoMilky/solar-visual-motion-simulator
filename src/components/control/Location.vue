@@ -1,68 +1,34 @@
 <template>
-    <div>
-        <Draggable ref="draggableRef"/>
-		<div 
-            class="floating-box location-control"
-		    @mouseenter="draggableRef?.setButtonShow(true)" 
-		    @mouseleave="draggableRef?.setButtonShow(false)" 
-		    @mousedown="draggableRef?.startDrag($event)"
-            @touchstart="draggableRef?.handleTouch($event)"
-		    :class="{
-			    'floating-box-day': !isNight,
-			    'floating-box-night': isNight,
-			    'floating-box-draggable': draggableRef?.isDraggable
-		    }"
-        >
-			<button 
-                class="drag-button" 
-			    v-if="draggableRef?.isButtonShow" 
-			    @click="draggableRef?.toggleDraggable"
-			    :class="{
-			    	'drag-button-day-lock': !isNight && draggableRef?.isDraggable,
-			    	'drag-button-night-lock': isNight && draggableRef?.isDraggable,
-			    	'drag-button-day-unlock': !isNight && !draggableRef?.isDraggable,
-			    	'drag-button-night-unlock': isNight && !draggableRef?.isDraggable
-			    }"
-            >
-            </button><br>
-			<div>位置设置:</div>
-			<div>
-				经度:
-				<input 
-                    type="number" 
-				    v-model.number="longitude" 
-				    ref="longitudeInput"
-				    @input="updateLocation"
-				    min="-180" 
-				    max="180" 
-				    step="0.1" 
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-				°
-			</div>
-			<div>
-				纬度:
-				<input 
-                    type="number" 
-				    v-model.number="latitude" 
-				    ref="latitudeInput"
-				    @input="updateLocation"
-				    min="-90" 
-				    max="90" 
-				    step="0.1" 
-				    :class="{
-					    'input-day': !isNight,
-					    'input-night': isNight
-				    }"
-                >
-				°
-			</div>
-			<div class="earth-preview" ref="earthContainer"></div>
+    <Draggable ref="draggableRef" :isNight="isNight" customClass="location-control">
+		<div>位置设置:</div>
+		<div>
+			经度:
+			<InputField 
+                v-model="longitude" 
+                :min="-180" 
+                :max="180" 
+                :step="0.1"
+                :isNight="isNight" 
+                @input="updateLocation"
+                ref="longitudeInput"
+            />
+			°
 		</div>
-    </div>
+		<div>
+			纬度:
+			<InputField 
+                v-model="latitude" 
+                :min="-90" 
+                :max="90" 
+                :step="0.1"
+                :isNight="isNight" 
+                @input="updateLocation"
+                ref="latitudeInput"
+            />
+			°
+		</div>
+		<div class="earth-preview" ref="earthContainer"></div>
+    </Draggable>
 </template>
 
 <script setup>
@@ -72,17 +38,17 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { subscribeData, setLocation } from '../AppData.js';
 import Draggable from './Draggable.vue';
+import InputField from './InputField.vue';
 
 const draggableRef = ref(null);
+const longitudeInput = ref(null);
+const latitudeInput = ref(null);
 
 const earthContainer = ref(null);
 
 const longitude = ref(0);
 const latitude = ref(0);
 const isNight = ref(false);
-
-const longitudeInput = ref(null);
-const latitudeInput = ref(null);
 
 const EARTH_RADIUS = 1;
 const PIN_RADIUS = 0.01;
@@ -285,8 +251,8 @@ const updateLocation = () => {
 
 const updateData = (appData) => {
     const activeElement = document.activeElement;
-    const isEditingLongitude = longitudeInput.value === activeElement;
-    const isEditingLatitude = latitudeInput.value === activeElement;
+    const isEditingLongitude = longitudeInput.value?.$el === activeElement;
+    const isEditingLatitude = latitudeInput.value?.$el === activeElement;
 
     if (!isEditingLongitude) {
         longitude.value = appData.longitude;
@@ -315,13 +281,5 @@ onMounted(() => {
 
 input {
     width: 60px;
-    padding: 3px;
-    margin: 3px;
-    background-color: transparent;
-    border: none; 
-    -webkit-appearance: textfield;
-    appearance: textfield;
-    font-size: 16px;
-    text-align: center;
 }
 </style>

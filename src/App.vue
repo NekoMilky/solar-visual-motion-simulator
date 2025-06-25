@@ -1,112 +1,95 @@
 <template>
     <main>
         <div class="scenes">
-            <GroundScene v-if="appSetting.isGroundSceneToggle"/>
-            <EarthScene v-if="appSetting.isEarthSceneToggle"/>
+            <GroundScene v-if="appSetting.isSceneToggle?.[0]" />
+            <EarthScene v-if="appSetting.isSceneToggle?.[1]" />
         </div>
-        <InformationDisplay v-if="appSetting.isInformationDisplayToggle"/>
-        <LocationControl v-if="appSetting.isLocationControlToggle"/>
-        <TimeControl v-if="appSetting.isTimeControlToggle"/>
+        <div class="control">
+            <InformationDisplay v-if="appSetting.isInformationDisplayToggle" />
+            <LocationControl v-if="appSetting.isLocationControlToggle" />
+            <TimeControl v-if="appSetting.isTimeControlToggle" />
+        </div>
         <div class="nav-bar">
-            <button 
-                class="nav-bar-button toggle-information-display"  
+            <NavBarButton
+                :isActive="appSetting.isInformationDisplayToggle"
+                :isNight="isNight"
+                customClass="toggle-information-display"
                 @click="toggleInformationDisplay"
-                :class="{
-                    'nav-bar-button-day': appSetting.isInformationDisplayToggle && !isNight,
-                    'nav-bar-button-night': appSetting.isInformationDisplayToggle && isNight
-                }"
-            ></button>
-            <button 
-                class="nav-bar-button toggle-location-control" 
+            />
+            <NavBarButton
+                :isActive="appSetting.isLocationControlToggle"
+                :isNight="isNight"
+                customClass="toggle-location-control"
                 @click="toggleLocationControl"
-                :class="{
-                    'nav-bar-button-day': appSetting.isLocationControlToggle && !isNight,
-                    'nav-bar-button-night': appSetting.isLocationControlToggle && isNight
-                }"
-            ></button>
-            <button 
-                class="nav-bar-button toggle-time-control"  
+            />
+            <NavBarButton
+                :isActive="appSetting.isTimeControlToggle"
+                :isNight="isNight"
+                customClass="toggle-time-control"
                 @click="toggleTimeControl"
-                :class="{
-                    'nav-bar-button-day': appSetting.isTimeControlToggle && !isNight,
-                    'nav-bar-button-night': appSetting.isTimeControlToggle && isNight
-                }"
-            ></button>
+            />
             <div class="nav-bar-empty"></div>
-            <button 
-                class="nav-bar-button toggle-ground-scene"  
-                @click="toggleGroundScene"
-                :class="{
-                    'nav-bar-button-day': appSetting.isGroundSceneToggle && !isNight,
-                    'nav-bar-button-night': appSetting.isGroundSceneToggle && isNight
-                }"
-            ></button>
-            <div v-if="appSetting.isGroundSceneToggle">
-                <button 
-                    class="nav-bar-button toggle-sun-trajectory"  
+            <NavBarButton
+                :isActive="appSetting.isSceneToggle?.[0]"
+                :isNight="isNight"
+                customClass="toggle-ground-scene"
+                @click="toggleScenes(0)"
+            />
+            <template v-if="appSetting.isSceneToggle?.[0]">
+                <NavBarButton
+                    :isActive="appSetting.isSunTrajectoryToggle"
+                    :isNight="isNight"
+                    customClass="toggle-sun-trajectory"
                     @click="toggleSunTrajectory"
-                    :class="{
-                        'nav-bar-button-day': appSetting.isSunTrajectoryToggle && !isNight,
-                        'nav-bar-button-night': appSetting.isSunTrajectoryToggle && isNight
-                    }"
-                ></button>
-                <button 
-                    class="nav-bar-button toggle-pole-star-pointer"  
+                />
+                <NavBarButton
+                    :isActive="appSetting.isPoleStarPointerToggle"
+                    :isNight="isNight"
+                    customClass="toggle-pole-star-pointer"
                     @click="togglePoleStarPointer"
-                    :class="{
-                        'nav-bar-button-day': appSetting.isPoleStarPointerToggle && !isNight,
-                        'nav-bar-button-night': appSetting.isPoleStarPointerToggle && isNight
-                    }"
-                ></button>
-            </div>
+                />
+            </template>
             <div class="nav-bar-empty"></div>
-            <button 
-                class="nav-bar-button toggle-earth-scene"  
-                @click="toggleEarthScene"
-                :class="{
-                    'nav-bar-button-day': appSetting.isEarthSceneToggle && !isNight,
-                    'nav-bar-button-night': appSetting.isEarthSceneToggle && isNight
-                }"
-            ></button>
-            <div v-if="appSetting.isEarthSceneToggle">
-                <button 
-                    class="nav-bar-button toggle-pin"  
+            <NavBarButton
+                :isActive="appSetting.isSceneToggle?.[1]"
+                :isNight="isNight"
+                customClass="toggle-earth-scene"
+                @click="toggleScenes(1)"
+            />
+            <template v-if="appSetting.isSceneToggle?.[1]">
+                <NavBarButton
+                    :isActive="appSetting.isPinToggle"
+                    :isNight="isNight"
+                    customClass="toggle-pin"
                     @click="togglePin"
-                    :class="{
-                        'nav-bar-button-day': appSetting.isPinToggle && !isNight,
-                        'nav-bar-button-night': appSetting.isPinToggle && isNight
-                    }"
-                ></button>
-                <button 
-                    class="nav-bar-button toggle-grid"  
+                />
+                <NavBarButton
+                    :isActive="appSetting.isGridToggle"
+                    :isNight="isNight"
+                    customClass="toggle-grid"
                     @click="toggleGrid"
-                    :class="{
-                        'nav-bar-button-day': appSetting.isGridToggle && !isNight,
-                        'nav-bar-button-night': appSetting.isGridToggle && isNight
-                    }"
-                ></button>
-                <button 
-                    class="nav-bar-button toggle-sun-ray-pointer"  
+                />
+                <NavBarButton
+                    :isActive="appSetting.isSunRayPointerToggle"
+                    :isNight="isNight"
+                    customClass="toggle-sun-ray-pointer"
                     @click="toggleSunRayPointer"
-                    :class="{
-                        'nav-bar-button-day': appSetting.isSunRayPointerToggle && !isNight,
-                        'nav-bar-button-night': appSetting.isSunRayPointerToggle && isNight
-                    }"
-                ></button>
-            </div>
+                />
+            </template>
         </div>
     </main>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import NavBarButton from './NavBarButton.vue';
 import GroundScene from './components/GroundScene.vue';
 import EarthScene from './components/EarthScene.vue';
 import InformationDisplay from './components/control/InformationDisplay.vue';
 import LocationControl from './components/control/Location.vue';
 import TimeControl from './components/control/Time.vue';
 import { subscribeData } from './components/AppData.js';
-import { subscribeSetting, toggleGroundScene, toggleEarthScene, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting.js';
+import { subscribeSetting, toggleScenes, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting.js';
 
 const appSetting = ref({});
 const isNight = ref(false);
@@ -130,7 +113,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
 .scenes {
     position: absolute;
     bottom: 60px;
@@ -155,34 +138,14 @@ onMounted(() => {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     background-color: rgb(255, 255, 255);
+    gap: clamp(3px, 2vw, 20px);
 }
 
 .nav-bar-empty {
-    width: 40px;
-    height: 40px;
-    margin: 10px;
-}
-
-.nav-bar-button {
-    width: 40px;
-    height: 40px;
-    margin: 10px;
-    border-radius: 10px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: transparent;
-    border: none;
-    transition: background-color 0.3s, opacity 0.3s;
-}
-
-.nav-bar-button-day {
-    background-color: rgb(255, 140, 0);
-}
-
-.nav-bar-button-night {
-    background-color: rgb(89, 118, 186);
+    width: clamp(10px, 4vw, 40px);
+    height: clamp(10px, 4vw, 40px);
 }
 
 .toggle-information-display {

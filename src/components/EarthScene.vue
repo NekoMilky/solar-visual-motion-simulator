@@ -213,7 +213,7 @@ const createScene = () => {
 
     const updateSetting = (setting) => {
         appSetting.value = setting;
-        if (appSetting.value.isGroundSceneToggle) {
+        if (appSetting.value.isSceneToggle[0]) {
             scene_width_ratio = 0.5;
             handleWindowResize();
         } else {

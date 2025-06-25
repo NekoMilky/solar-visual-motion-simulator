@@ -3,8 +3,7 @@ import { safeLocalStorage } from './SafeLocalStorage.js';
 // 设置选项
 const settingSubscribers = new Set();
 
-let isGroundSceneToggle = safeLocalStorage.get('is_ground_scene_toggle') ?? true;
-let isEarthSceneToggle = safeLocalStorage.get('is_earth_scene_toggle') ?? false;
+let isSceneToggle = safeLocalStorage.get('is_scene_toggle') ?? [true, false];
 let isInformationDisplayToggle = safeLocalStorage.get('is_information_display_toggle') ?? false;
 let isLocationControlToggle = safeLocalStorage.get('is_location_control_toggle') ?? false;
 let isTimeControlToggle = safeLocalStorage.get('is_time_control_toggle') ?? false;
@@ -24,16 +23,12 @@ const subscribeSetting = (callback) => {
     return () => settingSubscribers.delete(callback);
 };
 
-const toggleGroundScene = () => {
-    isGroundSceneToggle = !isGroundSceneToggle;
-    safeLocalStorage.set('is_ground_scene_toggle', isGroundSceneToggle);
-    notifySettingSubscribers();
-}
-
-const toggleEarthScene = () => {
-    isEarthSceneToggle = !isEarthSceneToggle;
-    safeLocalStorage.set('is_earth_scene_toggle', isEarthSceneToggle);
-    notifySettingSubscribers();
+const toggleScenes = (index) => {
+    if (index >= 0 && index < isSceneToggle.length) {
+        isSceneToggle[index] = !isSceneToggle[index];
+        safeLocalStorage.set('is_scene_toggle', isSceneToggle);
+        notifySettingSubscribers();
+    }
 }
 
 const toggleInformationDisplay = () => {
@@ -86,8 +81,7 @@ const toggleSunRayPointer = () => {
 
 const getSetting = () => {
     return {
-        isGroundSceneToggle: isGroundSceneToggle,
-        isEarthSceneToggle: isEarthSceneToggle,
+        isSceneToggle: isSceneToggle,
         isInformationDisplayToggle: isInformationDisplayToggle,
         isLocationControlToggle: isLocationControlToggle,
         isTimeControlToggle: isTimeControlToggle,
@@ -100,8 +94,7 @@ const getSetting = () => {
 }
 
 export {
-    toggleGroundScene,
-    toggleEarthScene,
+    toggleScenes,
     toggleInformationDisplay,
     toggleLocationControl,
     toggleTimeControl,

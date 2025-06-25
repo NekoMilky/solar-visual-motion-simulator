@@ -242,7 +242,7 @@ const createScene = () => {
 
     const updateSetting = (setting) => {
         appSetting.value = setting;
-        if (appSetting.value.isEarthSceneToggle) {
+        if (appSetting.value.isSceneToggle[1]) {
             scene_width_ratio = 0.5;
             handleWindowResize();
         } else {
