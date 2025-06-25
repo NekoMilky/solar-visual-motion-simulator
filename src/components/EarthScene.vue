@@ -13,22 +13,8 @@ import { subscribeSetting } from './AppSetting.js';
 
 const sceneContainer = ref(null);
 
-const appData = ref({
-    longitude: 0,
-    latitude: 0,
-    solarData: {
-        obliquityOfEcliptic: 0,
-        solarDeclination: 0,
-        solarRightAscension: 0
-    }
-});
-const appSetting = ref({
-    isGroundSceneToggle: true,
-    isEarthSceneToggle: false,
-    isGridToggle: false,
-    isPinToggle: true,
-    isSunRayPointerToggle: false
-});
+const appData = ref({});
+const appSetting = ref({});
 
 // 定义固定常数
 const EARTH_RADIUS = 3;
@@ -243,11 +229,11 @@ const createScene = () => {
         // 转换角度为弧度
         const longitude = appData.value.longitude * Math.PI / 180;
         const latitude = appData.value.latitude * Math.PI / 180;
-		const declination = solarData.solarDeclination * Math.PI / 180;
-		const rightAscension = solarData.solarRightAscension * Math.PI / 180;
+		const declination = solarData.solarPosition.latitude * Math.PI / 180;
+		const ascension = solarData.solarPosition.longitude * Math.PI / 180;
 
         // 更新阴影球面位置
-        shadowSphere.rotation.y = rightAscension;
+        shadowSphere.rotation.y = ascension;
         shadowSphere.rotation.z = declination;
 
         // 更新太阳光线指针
@@ -255,10 +241,10 @@ const createScene = () => {
             if (!scene.children.includes(sunRayPointer)) {
                 scene.add(sunRayPointer);
             }
-            sunRayPointer.position.x = SUN_RAY_POINTER_HEIGHT / 2 * Math.cos(rightAscension) * Math.cos(declination);
+            sunRayPointer.position.x = SUN_RAY_POINTER_HEIGHT / 2 * Math.cos(ascension) * Math.cos(declination);
             sunRayPointer.position.y = SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(declination);
-            sunRayPointer.position.z = - SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(rightAscension) * Math.cos(declination);
-            sunRayPointer.rotation.y = rightAscension;
+            sunRayPointer.position.z = - SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(ascension) * Math.cos(declination);
+            sunRayPointer.rotation.y = ascension;
             sunRayPointer.rotation.z = declination - Math.PI / 2;
         } else if (scene.children.includes(sunRayPointer)) {
             scene.remove(sunRayPointer);

@@ -108,18 +108,7 @@ import TimeControl from './components/control/Time.vue';
 import { subscribeData } from './components/AppData.js';
 import { subscribeSetting, toggleGroundScene, toggleEarthScene, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting.js';
 
-const appSetting = ref({
-    isGroundSceneToggle: true,
-    isEarthSceneToggle: false,
-    isInformationDisplayToggle: false,
-    isLocationControlToggle: false,
-    isTimeControlToggle: false,
-    isSunTrajectoryToggle: true,
-    isPoleStarPointerToggle: true,
-    isGridToggle: false,
-    isPinToggle: true,
-    isSunRayPointerToggle: false
-});
+const appSetting = ref({});
 const isNight = ref(false);
 
 const updateData = (data) => {

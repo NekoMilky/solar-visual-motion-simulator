@@ -98,7 +98,7 @@ const getData = () => {
         latitude: latitude,
         date: new Date(utcDate.getTime() + timeZone * 3600000),
         fps: fps,
-        solarData: calculateSolarData(longitude, latitude, new Date(utcDate.getTime() + timeZone * 3600000), timeZone)
+        solarData: calculateSolarData(new Date(utcDate.getTime() + timeZone * 3600000), longitude, latitude, timeZone)
     }
 }
 

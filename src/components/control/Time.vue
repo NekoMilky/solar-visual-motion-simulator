@@ -169,15 +169,7 @@ import Draggable from './Draggable.vue';
 
 const draggableRef = ref(null);
 
-const date = ref({
-    year: 1970,
-    month: 1,
-    date: 1,
-    hour: 0,
-    minute: 0,
-    second: 0,
-    daysOfMonth: 0
-})
+const date = ref({})
 const timeZone = ref(0);
 const timeSync = ref(true);
 const timeLapse = ref(0);

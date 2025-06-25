@@ -26,17 +26,17 @@
             ></button><br>
 			<div>信息显示:</div>
 			<div>时间: {{ currentTime }}</div>
-            <div>太阳直射点经度: {{ solarData.solarRightAscension.toFixed(3) }}°</div>
-			<div>太阳赤纬: {{ solarData.solarDeclination.toFixed(3) }}°</div>
-			<div>太阳时角: {{ solarData.solarHourAngle.toFixed(3) }}°</div>
-			<div>太阳方位角: {{ solarData.solarDirection.toFixed(3) }}° ({{ directionDisplay }})</div>
-			<div>太阳高度角: {{ solarData.solarHeight.toFixed(3) }}°</div>
+            <div>太阳直射点经度: {{ solarData.solarPosition?.longitude.toFixed(3) }}°</div>
+			<div>太阳直射点纬度: {{ solarData.solarPosition?.latitude.toFixed(3) }}°</div>
+			<div>太阳时角: {{ solarData.solarHourAngle?.toFixed(3) }}°</div>
+			<div>太阳方位角: {{ solarData.solarDirection?.toFixed(3) }}° ({{ directionDisplay }})</div>
+			<div>太阳高度角: {{ solarData.solarHeight?.toFixed(3) }}°</div>
             <br>
-            <div v-if="!solarData.dayLength.polarDay && !solarData.dayLength.polarNight">昼长: {{ dayLengthTime }}</div>
-            <div v-if="!solarData.dayLength.polarDay && !solarData.dayLength.polarNight">日出时间: {{ sunRiseTime }}</div>
-            <div v-if="!solarData.dayLength.polarDay && !solarData.dayLength.polarNight">日落时间: {{ sunSetTime }}</div>
-            <div v-if="solarData.dayLength.polarDay">极昼</div>
-            <div v-if="solarData.dayLength.polarNight">极夜</div>
+            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">昼长: {{ dayLengthTime }}</div>
+            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日出时间: {{ sunRiseTime }}</div>
+            <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日落时间: {{ sunSetTime }}</div>
+            <div v-if="solarData.dayLength?.polarDay">极昼</div>
+            <div v-if="solarData.dayLength?.polarNight">极夜</div>
 		</div>
     </div>
 </template>
@@ -53,20 +53,7 @@ const dayLengthTime = ref('');
 const sunRiseTime = ref('');
 const sunSetTime = ref('');
 const directionDisplay = ref('');
-const solarData = ref({
-    solarDeclination: 0,
-    solarRightAscension: 0,
-    solarHourAngle: 0,
-    solarDirection: 0,
-    solarHeight: 0,
-    dayLength: {
-        polarDay: false,
-        polarNight: false,
-        dayLength: 12,
-        sunRise: 12,
-        sunSet: 12
-    }
-});
+const solarData = ref({});
 const isNight = ref(false);
 
 const updateData = (appData) => {

@@ -11,23 +11,8 @@ import { subscribeSetting } from './AppSetting.js';
 
 const sceneContainer = ref(null);
 
-const appData = ref({
-    timeZone: 8,
-    latitude: 0,
-    date: new Date(),
-    solarData: {
-        solarDeclination: 0,
-        solarHourAngle: 0,
-        solarDirection: 0,
-        solarHeight: 0
-    }
-});
-const appSetting = ref({
-    isGroundSceneToggle: true,
-    isEarthSceneToggle: false,
-    isSunTrajectoryToggle: true,
-    isPoleStarPointerToggle: true
-});
+const appData = ref({});
+const appSetting = ref({});
 
 // 定义固定常数
 const SKY_COLORS = {
@@ -271,7 +256,7 @@ const createScene = () => {
 		const solarData = appData.value.solarData;
 	
 		// 转换角度为弧度
-		const declination = solarData.solarDeclination * Math.PI / 180;
+		const declination = solarData.solarPosition.latitude * Math.PI / 180;
 		const height = solarData.solarHeight * Math.PI / 180;
 		const direction = (solarData.solarDirection - 90) * Math.PI / 180;
 		const latitude = appData.value.latitude * Math.PI / 180;
