@@ -8,11 +8,27 @@
 		<div>太阳方位角: {{ solarData.solarDirection?.toFixed(3) }}° ({{ directionDisplay }})</div>
 		<div>太阳高度角: {{ solarData.solarHeight?.toFixed(3) }}°</div>
         <br>
-        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">昼长: {{ dayLengthTime }}</div>
-        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日出时间: {{ sunRiseTime }}</div>
-        <div v-if="!solarData.dayLength?.polarDay && !solarData.dayLength?.polarNight">日落时间: {{ sunSetTime }}</div>
-        <div v-if="solarData.dayLength?.polarDay">极昼</div>
-        <div v-if="solarData.dayLength?.polarNight">极夜</div>
+        <div v-if="solarData.solarTime?.isPolarDay">极昼</div>
+        <div v-if="solarData.solarTime?.isPolarNight">极夜</div>
+        <div v-if="!solarData.solarTime?.isPolarDay && !solarData.solarTime?.isPolarNight">昼长: {{ dayDurationTime }}</div>
+        <div v-if="!solarData.solarTime?.isPolarDay && !solarData.solarTime?.isPolarNight">日出: {{ sunRiseTime }}</div>
+        <div>日中: {{ noonTime }}</div>
+        <div v-if="!solarData.solarTime?.isPolarDay && !solarData.solarTime?.isPolarNight">日落: {{ sunSetTime }}</div>
+        <template v-if="solarData.solarTime?.isCivilTwilight">
+            <br>
+            <div>民用曙光始: {{ civilTwilightStartTime }}</div>
+            <div>民用暮光终: {{ civilTwilightEndTime }}</div>
+        </template>
+        <template v-if="solarData.solarTime?.isNauticalTwilight">
+            <br>
+            <div>航海曙光始: {{ nauticalTwilightStartTime }}</div>
+            <div>航海暮光终: {{ nauticalTwilightEndTime }}</div>
+        </template>
+        <template v-if="solarData.solarTime?.isAstronomicalTwilight">
+            <br>
+            <div>天文曙光始: {{ astronomicalTwilightStartTime }}</div>
+            <div>天文暮光终: {{ astronomicalTwilightEndTime }}</div>
+        </template>
     </Draggable>
 </template>
 
@@ -24,31 +40,52 @@ import Draggable from './Draggable.vue';
 const draggableRef = ref(null);
 
 const currentTime = ref('');
-const dayLengthTime = ref('');
+const dayDurationTime = ref('');
 const sunRiseTime = ref('');
 const sunSetTime = ref('');
+const noonTime = ref('');
+const civilTwilightStartTime = ref('');
+const civilTwilightEndTime = ref('');
+const nauticalTwilightStartTime = ref('');
+const nauticalTwilightEndTime = ref('');
+const astronomicalTwilightStartTime = ref('');
+const astronomicalTwilightEndTime = ref('');
 const directionDisplay = ref('');
 const solarData = ref({});
 const isNight = ref(false);
 
+const dateFormat = (date = new Date()) => {
+    const formattedYear = date.getFullYear();
+    const formattedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+    const formattedDate = date.getDate().toString().padStart(2, '0');
+    const formattedHours = date.getHours().toString().padStart(2, '0');
+    const formattedMinutes = date.getMinutes().toString().padStart(2, '0');
+    const formattedSeconds = date.getSeconds().toString().padStart(2, '0');
+    return `${formattedYear}-${formattedMonth}-${formattedDate} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
+
+const timeFormat = (time, showSecond) => {
+    const hours = Math.floor(time);
+    const minutes = Math.floor(time % 1 * 60);
+    const seconds = Math.floor(time * 60 % 1 * 60);
+    const formattedHours = hours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedSeconds = seconds.toString().padStart(2, '0');
+    return `${formattedHours}:${formattedMinutes}${showSecond ? `:${formattedSeconds}` : ``}`;
+}
+
 const updateData = (appData) => {
-    const date = appData.date;
-    const dateHours = date.getHours();
-    const dateMinutes = date.getMinutes();
-    const dateSeconds = date.getSeconds();
-    const dateFormattedHours = dateHours.toString().padStart(2, '0');
-    const dateFormattedMinutes = dateMinutes.toString().padStart(2, '0');
-    const dateFormattedSeconds = dateSeconds.toString().padStart(2, '0');
-    const timeZone = appData.timeZone;
-    const timeZoneHours = Math.floor(Math.abs(timeZone));
-    const timeZoneMinutes = Math.floor(Math.abs(timeZone) % 1 * 60);
-    const timeZoneFormattedHours = timeZoneHours.toString().padStart(2, '0');
-    const timeZoneFormattedMinutes = timeZoneMinutes.toString().padStart(2, '0');
-    currentTime.value = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${dateFormattedHours}:${dateFormattedMinutes}:${dateFormattedSeconds} UTC${timeZone < 0 ? '-' : '+'}${timeZoneFormattedHours}:${timeZoneFormattedMinutes}`;
-    
     solarData.value = appData.solarData;
     isNight.value = solarData.value.solarHeight < 0;
 
+    // 格式化日期
+    const date = appData.date;
+    const dateFormatted = dateFormat(date);
+    const timeZone = appData.timeZone;
+    const timeZoneFormatted = timeFormat(timeZone, false);
+    currentTime.value = `${dateFormatted} UTC${timeZone < 0 ? '-' : '+'}${timeZoneFormatted}`;
+
+    // 方位更新
     if (appData.latitude == 90) {
         directionDisplay.value = 'S';
     } else if (appData.latitude == -90) {
@@ -62,33 +99,55 @@ const updateData = (appData) => {
         directionDisplay.value = directionText[Math.floor(direction / 45)];
     }
 
-    if (!solarData.value.dayLength.polarDay && !solarData.value.dayLength.polarNight) {
-        const dayLength = solarData.value.dayLength.dayLength;
-        const dayLengthHours = Math.floor(dayLength);
-        const dayLengthMinutes = Math.floor(dayLength % 1 * 60);
-        const dayLengthSeconds = Math.floor(dayLength % (1 / 60) * 3600);
-        const dayLengthFormattedHours = dayLengthHours.toString().padStart(2, '0');
-        const dayLengthFormattedMinutes = dayLengthMinutes.toString().padStart(2, '0');
-        const dayLengthFormattedSeconds = dayLengthSeconds.toString().padStart(2, '0');
-        dayLengthTime.value = `${dayLengthFormattedHours}:${dayLengthFormattedMinutes}:${dayLengthFormattedSeconds}`;
+    // 昼长、日出、日中、日落
+    if (!solarData.value.solarTime.isPolarDay && !solarData.value.solarTime.isPolarNight) {
+        const dayDuration = solarData.value.solarTime.dayDuration;
+        const dayDurationFormatted = timeFormat(dayDuration, true);
+        dayDurationTime.value = `${dayDurationFormatted}`;
 
-        const sunRise = solarData.value.dayLength.sunRise;
-        const sunRiseHours = Math.floor(sunRise);
-        const sunRiseMinutes = Math.floor(sunRise % 1 * 60);
-        const sunRiseSeconds = Math.floor(sunRise % (1 / 60) * 3600);
-        const sunRiseFormattedHours = sunRiseHours.toString().padStart(2, '0');
-        const sunRiseFormattedMinutes = sunRiseMinutes.toString().padStart(2, '0');
-        const sunRiseFormattedSeconds = sunRiseSeconds.toString().padStart(2, '0');
-        sunRiseTime.value = `${sunRiseFormattedHours}:${sunRiseFormattedMinutes}:${sunRiseFormattedSeconds}`;
+        const sunRise = solarData.value.solarTime.sunRise;
+        const sunRiseFormatted = timeFormat(sunRise, true);
+        sunRiseTime.value = `${sunRiseFormatted}`;
 
-        const sunSet = solarData.value.dayLength.sunSet;
-        const sunSetHours = Math.floor(sunSet);
-        const sunSetMinutes = Math.floor(sunSet % 1 * 60);
-        const sunSetSeconds = Math.floor(sunSet % (1 / 60) * 3600);
-        const sunSetFormattedHours = sunSetHours.toString().padStart(2, '0');
-        const sunSetFormattedMinutes = sunSetMinutes.toString().padStart(2, '0');
-        const sunSetFormattedSeconds = sunSetSeconds.toString().padStart(2, '0');
-        sunSetTime.value = `${sunSetFormattedHours}:${sunSetFormattedMinutes}:${sunSetFormattedSeconds}`;
+        const sunSet = solarData.value.solarTime.sunSet;
+        const sunSetFormatted = timeFormat(sunSet, true);
+        sunSetTime.value = `${sunSetFormatted}`;
+    }
+    const noon = solarData.value.solarTime.noon;
+    const noonFormatted = timeFormat(noon, true);
+    noonTime.value = `${noonFormatted}`;
+
+    // 民用曙暮光
+    if (solarData.value.solarTime.isCivilTwilight) {
+        const start = solarData.value.solarTime.civilTwilightStart;
+        const startFormatted = timeFormat(start, true);
+        civilTwilightStartTime.value = `${startFormatted}`;
+
+        const end = solarData.value.solarTime.civilTwilightEnd;
+        const endFormatted = timeFormat(end, true);
+        civilTwilightEndTime.value = `${endFormatted}`;
+    }
+
+    // 航海曙暮光
+    if (solarData.value.solarTime.isNauticalTwilight) {
+        const start = solarData.value.solarTime.nauticalTwilightStart;
+        const startFormatted = timeFormat(start, true);
+        nauticalTwilightStartTime.value = `${startFormatted}`;
+
+        const end = solarData.value.solarTime.nauticalTwilightEnd;
+        const endFormatted = timeFormat(end, true);
+        nauticalTwilightEndTime.value = `${endFormatted}`;
+    }
+
+    // 天文曙暮光
+    if (solarData.value.solarTime.isAstronomicalTwilight) {
+        const start = solarData.value.solarTime.astronomicalTwilightStart;
+        const startFormatted = timeFormat(start, true);
+        astronomicalTwilightStartTime.value = `${startFormatted}`;
+
+        const end = solarData.value.solarTime.astronomicalTwilightEnd;
+        const endFormatted = timeFormat(end, true);
+        astronomicalTwilightEndTime.value = `${endFormatted}`;
     }
 };
 

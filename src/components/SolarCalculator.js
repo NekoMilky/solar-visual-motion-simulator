@@ -154,54 +154,112 @@ const getSolarDirection = (latitude, declination, hourAngle) => {
     return direction_deg;
 }
 
-// 计算昼长
-const getDayLength = (EoT, longitude, latitude, declination, timeZone) => {
+// 计算特定高度角的起止、历时
+const getSolarDuration = (h0, EoT, longitude, latitude, declination, timeZone) => {
     const phi = latitude * Math.PI / 180;
     const delta = declination * Math.PI / 180;
     const offset = timeZone - longitude / 15 - EoT;
 
-    const h0 = -0.833 * Math.PI / 180;
+    let highest = (12 + offset) % 24;
+    if (highest < 0) {
+        highest += 24;
+    }
+    let lowest = offset % 24;
+    if (lowest < 0) {
+        lowest += 24;
+    }
+
     const cosH0 = (Math.sin(h0) - Math.sin(phi) * Math.sin(delta)) / 
                   (Math.cos(phi) * Math.cos(delta));
     
-    // 极昼夜判断
-    let polarDay = false, polarNight = false;
+    let neverSet = false, neverRise = false;
     if (cosH0 >= 1) {
-        polarNight = true;
+        neverRise = true;
     } else if (cosH0 <= -1) {
-        polarDay = true;
+        neverSet = true;
     }
     
-    // 昼长计算
-    let dayLength = null, sunRise = null, sunSet = null;
-    if (polarDay) {
-        dayLength = 24;
-    } else if (polarNight) {
-        dayLength = 0;
+    let duration = null, rise = null, set = null;
+    if (neverSet) {
+        duration = 24;
+    } else if (neverRise) {
+        duration = 0;
     } else {
-        const halfDayLength = Math.acos(cosH0) * 12 / Math.PI;
-        dayLength = halfDayLength * 2;
-        
-        sunRise = 12 + offset - halfDayLength;
-        sunRise %= 24;
-        if (sunRise < 0) {
-            sunRise += 24;
-        }
+        const halfDuration = Math.acos(cosH0) * 12 / Math.PI;
+        duration = halfDuration * 2;
 
-        sunSet = 12 + offset + halfDayLength;
-        sunSet %= 24;
-        if (sunSet < 0) {
-            sunSet += 24;
+        rise = highest - halfDuration;
+        rise %= 24;
+        if (rise < 0) {
+            rise += 24;
+        }
+        set = highest + halfDuration;
+        set %= 24;
+        if (set < 0) {
+            set += 24;
         }
     }
     
     return {
-        polarDay,
-        polarNight,
-        dayLength,
-        sunRise,
-        sunSet
+        neverSet,
+        neverRise,
+        highest,
+        lowest,
+        duration,
+        rise,
+        set
     };
+}
+
+// 计算特定时刻与时长
+const getSolarTime = (EoT, longitude, latitude, declination, timeZone) => {
+    // 昼长、日出、日落、日中
+    const day = getSolarDuration(-0.833 * Math.PI / 180, EoT, longitude, latitude, declination, timeZone);
+    const isPolarDay = day.neverSet;
+    const isPolarNight = day.neverRise;
+    const noon = day.highest;
+    const dayDuration = day.duration;
+    const sunRise = day.rise;
+    const sunSet = day.set;
+
+    // 民用曙暮光
+    const civilTwilight = getSolarDuration(-6 * Math.PI / 180, EoT, longitude, latitude, declination, timeZone);
+    const isCivilTwilight = !civilTwilight.neverRise && !civilTwilight.neverSet;
+    const civilTwilightStart = civilTwilight.rise;
+    const civilTwilightEnd = civilTwilight.set;
+
+    // 航海曙暮光
+    const nauticalTwilight = getSolarDuration(-12 * Math.PI / 180, EoT, longitude, latitude, declination, timeZone);
+    const isNauticalTwilight = !nauticalTwilight.neverRise && !nauticalTwilight.neverSet;
+    const nauticalTwilightStart = nauticalTwilight.rise;
+    const nauticalTwilightEnd = nauticalTwilight.set;
+
+    // 天文曙暮光
+    const astronomicalTwilight = getSolarDuration(-18 * Math.PI / 180, EoT, longitude, latitude, declination, timeZone);
+    const isAstronomicalTwilight = !astronomicalTwilight.neverRise && !astronomicalTwilight.neverSet;
+    const astronomicalTwilightStart = astronomicalTwilight.rise;
+    const astronomicalTwilightEnd = astronomicalTwilight.set;
+
+    return {
+        isPolarDay: isPolarDay,
+        isPolarNight: isPolarNight,
+        noon: noon,
+        dayDuration: dayDuration,
+        sunRise: sunRise,
+        sunSet: sunSet,
+
+        isCivilTwilight: isCivilTwilight,
+        civilTwilightStart: civilTwilightStart,
+        civilTwilightEnd: civilTwilightEnd,
+
+        isNauticalTwilight: isNauticalTwilight,
+        nauticalTwilightStart: nauticalTwilightStart,
+        nauticalTwilightEnd: nauticalTwilightEnd,
+
+        isAstronomicalTwilight: isAstronomicalTwilight,
+        astronomicalTwilightStart: astronomicalTwilightStart,
+        astronomicalTwilightEnd: astronomicalTwilightEnd
+    }
 }
 
 // 返回数据
@@ -216,7 +274,7 @@ const calculateSolarData = (date = new Date(), longitude, latitude, timeZone) =>
     const hourAngle = getSolarHourAngle(longitude, solarPosition.longitude);
     const height = getSolarHeight(latitude, solarPosition.latitude, hourAngle);
     const direction = getSolarDirection(latitude, solarPosition.latitude, hourAngle);
-    const dayLength = getDayLength(solarEquatorialPosition.equationOfTime, longitude, latitude, solarPosition.latitude, timeZone);
+    const time = getSolarTime(solarEquatorialPosition.equationOfTime, longitude, latitude, solarPosition.latitude, timeZone);
 
     return {
         obliquityOfEcliptic: obliquityOfEcliptic,
@@ -224,7 +282,7 @@ const calculateSolarData = (date = new Date(), longitude, latitude, timeZone) =>
         solarHourAngle: hourAngle,
         solarHeight: height, 
         solarDirection: direction,
-        dayLength: dayLength
+        solarTime: time
     };
 };
 
