@@ -59,33 +59,6 @@ const pathName = ref('');
 
 let element;
 
-const handleWindowResize = () => {
-    if (element) {
-        const elementWidth = element.offsetWidth;
-        const elementHeight = element.offsetHeight;
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight - 60;
-
-        if (currentLeft.value < 0) {
-            currentLeft.value = 0;
-        } else if (currentLeft.value > screenWidth - elementWidth) {
-            currentLeft.value = screenWidth - elementWidth;
-        }
-
-        if (currentTop.value < 0) {
-            currentTop.value = 0;
-        } else if (currentTop.value > screenHeight - elementHeight) {
-            currentTop.value = screenHeight - elementHeight;
-        }
-
-        element.style.left = `${currentLeft.value}px`;
-        element.style.top = `${currentTop.value}px`;
-
-        safeLocalStorage.set(`${pathName.value}_left`, currentLeft.value);
-        safeLocalStorage.set(`${pathName.value}_top`, currentTop.value);
-    }
-}
-
 const setButtonShow = (val) => {
     isButtonShow.value = val;
 }
@@ -103,7 +76,6 @@ const setClassName = (cName, pName) => {
         element.style.left = `${currentLeft.value}px`;
         element.style.top = `${currentTop.value}px`;
     }
-    window.addEventListener('resize', handleWindowResize);
 };
 
 const toggleDraggable = () => {
@@ -208,7 +180,6 @@ const handleTouch = (e) => {
 
 onBeforeUnmount(() => {
     stopDrag();
-    window.removeEventListener('resize', handleWindowResize);
 });
 
 defineExpose({
