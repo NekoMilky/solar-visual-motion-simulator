@@ -11,7 +11,7 @@
                 @input="updateDate"
                 ref="yearInput"
             />
-            /
+            -
             <InputField 
                 v-model="date.month" 
                 :min="1" 
@@ -20,7 +20,7 @@
                 @input="updateDate"
                 ref="monthInput"
             />
-            /
+            -
             <InputField 
                 v-model="date.date" 
                 :min="1" 

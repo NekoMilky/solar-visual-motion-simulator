@@ -263,11 +263,11 @@ const getSolarTime = (EoT, longitude, latitude, declination, timeZone) => {
 }
 
 // 返回数据
-const calculateSolarData = (date = new Date(), longitude, latitude, timeZone) => {
+const calculateSolarData = (date = new Date(), longitude, latitude, timeZone, override = {}) => {
     const julianDay = getJulianDay(date, timeZone);
     const gast = getGAST(julianDay);
 
-    const obliquityOfEcliptic = getObliquityOfEcliptic(julianDay);
+    const obliquityOfEcliptic = override.obliquityOfEcliptic ?? getObliquityOfEcliptic(julianDay);
     const solarEquatorialPosition = getSolarEquatorialPosition(julianDay, obliquityOfEcliptic);
     const solarPosition = getSolarPosition(gast, solarEquatorialPosition.declination, solarEquatorialPosition.ascension);
 
