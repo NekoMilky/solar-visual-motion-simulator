@@ -354,7 +354,7 @@ const createScene = () => {
 		}
 		ambientLight.intensity = lightParams.intensity;
 		ambientLight.color.copy(lightParams.color);
-	
+
 		// 动态计算背景色
 		let skyColor;
 		if (height <= -Math.PI / 6) { // 天文晨光                   

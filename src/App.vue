@@ -1,7 +1,7 @@
 <template>
     <main>
         <div class="scenes">
-            <GroundScene v-if="appSetting.isSceneToggle?.[0]" />
+            <CelestialSphereScene v-if="appSetting.isSceneToggle?.[0]" />
             <EarthScene v-if="appSetting.isSceneToggle?.[1]" />
         </div>
         <div class="control">
@@ -83,7 +83,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import NavBarButton from './NavBarButton.vue';
-import GroundScene from './components/GroundScene.vue';
+import CelestialSphereScene from './components/CelestialSphereScene.vue';
 import EarthScene from './components/EarthScene.vue';
 import InformationDisplay from './components/control/InformationDisplay.vue';
 import LocationControl from './components/control/Location.vue';
