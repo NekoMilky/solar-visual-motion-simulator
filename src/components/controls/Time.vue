@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { subscribeData, setDate, setTimeLapse, setTimeSync, setTimeZone } from '../AppData.js';
+import { subscribeData, setDate, setTimeLapse, setTimeSync, setTimeZone } from '../../utils/AppData.js';
 import Draggable from './Draggable.vue';
 import InputField from './InputField.vue';
 

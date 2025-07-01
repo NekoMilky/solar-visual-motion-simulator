@@ -82,14 +82,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import NavBarButton from './NavBarButton.vue';
-import CelestialSphereScene from './components/CelestialSphereScene.vue';
-import EarthScene from './components/EarthScene.vue';
-import InformationDisplay from './components/control/InformationDisplay.vue';
-import LocationControl from './components/control/Location.vue';
-import TimeControl from './components/control/Time.vue';
-import { subscribeData } from './components/AppData.js';
-import { subscribeSetting, toggleScenes, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './components/AppSetting.js';
+import NavBarButton from './components/NavBarButton.vue';
+import CelestialSphereScene from './views/CelestialSphereScene.vue';
+import EarthScene from './views/EarthScene.vue';
+import InformationDisplay from './components/controls/InformationDisplay.vue';
+import LocationControl from './components/controls/Location.vue';
+import TimeControl from './components/controls/Time.vue';
+import { subscribeData } from './utils/AppData.js';
+import { subscribeSetting, toggleScenes, toggleInformationDisplay, toggleLocationControl, toggleTimeControl, toggleSunTrajectory, togglePoleStarPointer, toggleGrid, togglePin, toggleSunRayPointer } from './utils/AppSetting.js';
 
 const appSetting = ref({});
 const isNight = ref(false);
@@ -156,42 +156,42 @@ onMounted(() => {
 }
 
 .toggle-information-display {
-    background-image: url(@/img/icon/information.png);
+    background-image: url(@/assets/images/icon/information.png);
 }
 
 .toggle-location-control {
-    background-image: url(@/img/icon/location.png);
+    background-image: url(@/assets/images/icon/location.png);
 }
 
 .toggle-time-control {
-    background-image: url(@/img/icon/time.png);
+    background-image: url(@/assets/images/icon/time.png);
 }
 
 .toggle-ground-scene {
-    background-image: url(@/img/icon/ground_scene.png);
+    background-image: url(@/assets/images/icon/ground_scene.png);
 }
 
 .toggle-sun-trajectory {
-    background-image: url(@/img/icon/sun_trajectory.png);
+    background-image: url(@/assets/images/icon/sun_trajectory.png);
 }
 
 .toggle-pole-star-pointer {
-    background-image: url(@/img/icon/pole_star_pointer.png);
+    background-image: url(@/assets/images/icon/pole_star_pointer.png);
 }
 
 .toggle-earth-scene {
-    background-image: url(@/img/icon/earth_scene.png);
+    background-image: url(@/assets/images/icon/earth_scene.png);
 }
 
 .toggle-pin {
-    background-image: url(@/img/icon/pin.png);
+    background-image: url(@/assets/images/icon/pin.png);
 }
 
 .toggle-grid {
-    background-image: url(@/img/icon/grid.png);
+    background-image: url(@/assets/images/icon/grid.png);
 }
 
 .toggle-sun-ray-pointer {
-    background-image: url(@/img/icon/sun_ray_pointer.png);
+    background-image: url(@/assets/images/icon/sun_ray_pointer.png);
 }
 </style>

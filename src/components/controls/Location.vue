@@ -32,11 +32,11 @@
 </template>
 
 <script setup>
-import earthTexture from '@/img/texture/earth_surface.jpg';
+import earthTexture from '@/assets/images/texture/earth_surface.jpg';
 import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { subscribeData, setLocation } from '../AppData.js';
+import { subscribeData, setLocation } from '../../utils/AppData.js';
 import Draggable from './Draggable.vue';
 import InputField from './InputField.vue';
 

@@ -3,13 +3,13 @@
 </template>
 
 <script setup>
-import earthTexture from '@/img/texture/earth_surface.jpg';
-import shadowTexture from '@/img/texture/shadow.png';
+import earthTexture from '@/assets/images/texture/earth_surface.jpg';
+import shadowTexture from '@/assets/images/texture/shadow.png';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { onMounted, onUnmounted, ref } from 'vue';
-import { subscribeData } from './AppData.js';
-import { subscribeSetting } from './AppSetting.js';
+import { subscribeData } from '../utils/AppData.js';
+import { subscribeSetting } from '../utils/AppSetting.js';
 
 const sceneContainer = ref(null);
 

@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, onBeforeUnmount, defineProps } from 'vue';
-import { safeLocalStorage } from '../SafeLocalStorage.js';
+import { safeLocalStorage } from '../../utils/SafeLocalStorage.js';
 
 const props = defineProps({
     isNight: {
@@ -227,18 +227,18 @@ defineExpose({
 }
 
 .drag-button-day-lock {
-    background-image: url(@/img/icon/lock_day.png);
+    background-image: url(@/assets/images/icon/lock_day.png);
 }
 
 .drag-button-night-lock {
-    background-image: url(@/img/icon/lock_night.png);
+    background-image: url(@/assets/images/icon/lock_night.png);
 }
 
 .drag-button-day-unlock {
-    background-image: url(@/img/icon/unlock_day.png);
+    background-image: url(@/assets/images/icon/unlock_day.png);
 }
 
 .drag-button-night-unlock {
-    background-image: url(@/img/icon/unlock_night.png);
+    background-image: url(@/assets/images/icon/unlock_night.png);
 }
 </style>
