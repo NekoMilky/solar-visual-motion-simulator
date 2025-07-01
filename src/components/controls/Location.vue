@@ -37,8 +37,8 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { subscribeData, setLocation } from '../../utils/AppData.js';
-import Draggable from './Draggable.vue';
-import InputField from './InputField.vue';
+import Draggable from '../Draggable.vue';
+import InputField from '../InputField.vue';
 
 const draggableRef = ref(null);
 const longitudeInput = ref(null);

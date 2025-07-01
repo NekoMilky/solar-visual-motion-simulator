@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, onBeforeUnmount, defineProps } from 'vue';
-import { safeLocalStorage } from '../../utils/SafeLocalStorage.js';
+import { safeLocalStorage } from '../utils/SafeLocalStorage.js';
 
 const props = defineProps({
     isNight: {

@@ -35,7 +35,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { subscribeData } from '../../utils/AppData.js';
-import Draggable from './Draggable.vue';
+import Draggable from '../Draggable.vue';
 
 const draggableRef = ref(null);
 
