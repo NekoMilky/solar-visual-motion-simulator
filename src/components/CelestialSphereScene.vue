@@ -66,7 +66,7 @@ const CAMERA_DISTANCE = 7.5;
 const CAMERA_HEIGHT = Math.PI / 6;
 const CAMERA_DIRECTION = 5 * Math.PI / 4;
 
-let scene_width_ratio = 1, scene_height_ratio = 1;
+let scene_width_divide = 1, scene_height_divide = 1;
 let scene, camera, renderer, controls;
 let sun, sunTrajectory, poleStarPointer, directionSprites;
 let ambientLight;
@@ -242,13 +242,7 @@ const createScene = () => {
 
     const updateSetting = (setting) => {
         appSetting.value = setting;
-        if (appSetting.value.isSceneToggle[1]) {
-            scene_width_ratio = 0.5;
-            handleWindowResize();
-        } else {
-            scene_width_ratio = 1;
-            handleWindowResize();
-        }
+        handleWindowResize();
     }
 	
 	// 更新元素
@@ -385,9 +379,25 @@ const createScene = () => {
 
     // 响应窗口大小变化
     const handleWindowResize = () => {
-        camera.aspect = (window.innerWidth * scene_width_ratio) / (window.innerHeight * scene_height_ratio);
+        const sceneToggle = appSetting.value.isSceneToggle;
+        let sceneToggleCount = 0;
+        for (const value of sceneToggle) {
+            if (value) {
+                sceneToggleCount++;
+            }
+        }
+        // 小于800像素宽：竖向排列
+        if (window.innerWidth < 800) {
+            scene_width_divide = 1;
+            scene_height_divide = sceneToggleCount;
+        } else {
+            scene_width_divide = sceneToggleCount;
+            scene_height_divide = 1;
+        }
+
+        camera.aspect = (window.innerWidth / scene_width_divide) / ((window.innerHeight - 60) / scene_height_divide);
 	    camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth * scene_width_ratio, window.innerHeight * scene_height_ratio);
+        renderer.setSize(window.innerWidth / scene_width_divide, (window.innerHeight - 60) / scene_height_divide);
     };
 
     // 创建新场景
@@ -396,7 +406,7 @@ const createScene = () => {
     scene.background = SKY_COLORS.daytime;
 
     // 创建相机
-    camera = new THREE.PerspectiveCamera(CAMERA_FOV, (window.innerWidth * scene_width_ratio) / (window.innerHeight * scene_height_ratio), CAMERA_NEAR, CAMERA_FAR);
+    camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
     camera.position.x = CAMERA_DISTANCE * Math.cos(CAMERA_DIRECTION) * Math.cos(CAMERA_HEIGHT);
     camera.position.y = CAMERA_DISTANCE * Math.sin(CAMERA_HEIGHT);
     camera.position.z = CAMERA_DISTANCE * Math.sin(CAMERA_DIRECTION) * Math.cos(CAMERA_HEIGHT);

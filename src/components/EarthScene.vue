@@ -32,7 +32,7 @@ const CAMERA_NEAR = 0.1;
 const CAMERA_FAR = 100;
 const CAMERA_DISTANCE = 7.5;
 
-let scene_width_ratio = 1, scene_height_ratio = 1;
+let scene_width_divide = 1, scene_height_divide = 1;
 let scene, camera, renderer, controls;
 let earth, shadowSphere, pin, grid, sunRayPointer;
 let animationId = null;
@@ -213,13 +213,7 @@ const createScene = () => {
 
     const updateSetting = (setting) => {
         appSetting.value = setting;
-        if (appSetting.value.isSceneToggle[0]) {
-            scene_width_ratio = 0.5;
-            handleWindowResize();
-        } else {
-            scene_width_ratio = 1;
-            handleWindowResize();
-        }
+        handleWindowResize();
     }
 	
 	// 更新元素
@@ -284,9 +278,25 @@ const createScene = () => {
 
     // 响应窗口大小变化
     const handleWindowResize = () => {
-        camera.aspect = (window.innerWidth * scene_width_ratio) / (window.innerHeight * scene_height_ratio);
+        const sceneToggle = appSetting.value.isSceneToggle;
+        let sceneToggleCount = 0;
+        for (const value of sceneToggle) {
+            if (value) {
+                sceneToggleCount++;
+            }
+        }
+        // 小于800像素宽：竖向排列
+        if (window.innerWidth < 800) {
+            scene_width_divide = 1;
+            scene_height_divide = sceneToggleCount;
+        } else {
+            scene_width_divide = sceneToggleCount;
+            scene_height_divide = 1;
+        }
+
+        camera.aspect = (window.innerWidth / scene_width_divide) / ((window.innerHeight - 60) / scene_height_divide);
 	    camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth * scene_width_ratio, window.innerHeight * scene_height_ratio);
+        renderer.setSize(window.innerWidth / scene_width_divide, (window.innerHeight - 60) / scene_height_divide);
     };
 
     // 创建新场景
@@ -295,7 +305,7 @@ const createScene = () => {
     scene.background = new THREE.Color(0x000000);
 
     // 创建相机
-    camera = new THREE.PerspectiveCamera(CAMERA_FOV, (window.innerWidth * scene_width_ratio) / (window.innerHeight * scene_height_ratio), CAMERA_NEAR, CAMERA_FAR);
+    camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
 
     // 创建渲染器
     renderer = new THREE.WebGLRenderer({ 

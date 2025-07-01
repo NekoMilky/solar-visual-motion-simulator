@@ -126,6 +126,13 @@ onMounted(() => {
     padding: 0;
     margin: 0;
     overflow: hidden;
+    height: calc(100vh - 60px);
+}
+
+@media (max-width: 800px) {
+    .scenes {
+        flex-direction: column;
+    }
 }
 
 .nav-bar {
