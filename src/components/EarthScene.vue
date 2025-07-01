@@ -32,7 +32,6 @@ const CAMERA_NEAR = 0.1;
 const CAMERA_FAR = 100;
 const CAMERA_DISTANCE = 7.5;
 
-let scene_width_divide = 1, scene_height_divide = 1;
 let scene, camera, renderer, controls;
 let earth, shadowSphere, pin, grid, sunRayPointer;
 let animationId = null;
@@ -285,18 +284,19 @@ const createScene = () => {
                 sceneToggleCount++;
             }
         }
+
         // 小于800像素宽：竖向排列
-        if (window.innerWidth < 800) {
-            scene_width_divide = 1;
-            scene_height_divide = sceneToggleCount;
+        const container = sceneContainer.value.parentElement;
+        let width = container.clientWidth, height = container.clientHeight;
+        if (container.clientWidth < 800) {
+            height /= sceneToggleCount;
         } else {
-            scene_width_divide = sceneToggleCount;
-            scene_height_divide = 1;
+            width /= sceneToggleCount;
         }
 
-        camera.aspect = (window.innerWidth / scene_width_divide) / ((window.innerHeight - 60) / scene_height_divide);
+        camera.aspect = width / height;
 	    camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth / scene_width_divide, (window.innerHeight - 60) / scene_height_divide);
+        renderer.setSize(width, height);
     };
 
     // 创建新场景

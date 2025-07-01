@@ -116,9 +116,8 @@ onMounted(() => {
 <style>
 .scenes {
     position: absolute;
-    bottom: 60px;
+    top: 0;
     left: 0;
-    right: 0;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
@@ -126,6 +125,7 @@ onMounted(() => {
     padding: 0;
     margin: 0;
     overflow: hidden;
+    width: 100vw;
     height: calc(100vh - 60px);
 }
 
@@ -151,8 +151,8 @@ onMounted(() => {
 }
 
 .nav-bar-empty {
-    width: clamp(10px, 4vw, 40px);
-    height: clamp(10px, 4vw, 40px);
+    width: clamp(20px, 2vw, 40px);
+    height: clamp(20px, 2vw, 40px);
 }
 
 .toggle-information-display {
