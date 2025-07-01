@@ -1,20 +1,15 @@
 <template>
-    <div ref="sceneContainer"></div>
+    <Base ref="baseRef" />
 </template>
 
 <script setup>
 import earthTexture from '@/assets/images/texture/earth_surface.jpg';
 import shadowTexture from '@/assets/images/texture/shadow.png';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { onMounted, onUnmounted, ref } from 'vue';
-import { subscribeData } from '../utils/AppData.js';
-import { subscribeSetting } from '../utils/AppSetting.js';
+import { onMounted, ref } from 'vue';
+import Base from './Base.vue';
 
-const sceneContainer = ref(null);
-
-const appData = ref({});
-const appSetting = ref({});
+const baseRef = ref(null);
 
 // 定义固定常数
 const EARTH_RADIUS = 3;
@@ -26,18 +21,29 @@ const GRID_RADIUS = EARTH_RADIUS + 0.02;
 const SUN_RAY_POINTER_RADIUS = 0.02;
 const SUN_RAY_POINTER_HEIGHT = 100;
 
-const CONTROLS_DAMPING_FACTOR = 0.05;
-const CAMERA_FOV = 75;
-const CAMERA_NEAR = 0.1;
-const CAMERA_FAR = 100;
 const CAMERA_DISTANCE = 7.5;
 
-let scene, camera, renderer, controls;
 let earth, shadowSphere, pin, grid, sunRayPointer;
-let animationId = null;
 
 // 创建场景
 const createScene = () => {
+    baseRef.value.createScene(
+        {
+            color: new THREE.Color(0x000000),
+            transparent: false
+        }, 
+        {
+            distance: CAMERA_DISTANCE, 
+            useCurrentPosition: true
+        },
+        {
+            damping: true,
+            pan: false,
+            zoom: false,
+            rotate: true
+        }
+    );
+
     // 创建地球
 	const createEarth = () => {
         const geometry = new THREE.SphereGeometry(
@@ -59,7 +65,7 @@ const createScene = () => {
         earth = new THREE.Mesh(geometry, material);
         earth.position.set(0, 0, 0);
         earth.rotation.set(0, 0, 0);
-        scene.add(earth);
+        baseRef.value.getScene().add(earth);
     }
 
     // 创建阴影球面
@@ -84,7 +90,7 @@ const createScene = () => {
         shadowSphere = new THREE.Mesh(geometry, material);
         shadowSphere.position.set(0, 0, 0);
         shadowSphere.rotation.x = 0;
-        scene.add(shadowSphere);
+        baseRef.value.getScene().add(shadowSphere);
     };
 
     // 创建图钉
@@ -181,7 +187,7 @@ const createScene = () => {
             grid.add(line);
         }
         // 回归线和极圈
-        const obliquity = appData.value.solarData.obliquityOfEcliptic;
+        const obliquity = baseRef.value.getAppData().solarData.obliquityOfEcliptic;
         const specialLines = [
             obliquity,
             90 - obliquity,
@@ -205,167 +211,68 @@ const createScene = () => {
         });
     };
 
-    // 更新数据
-    const updateData = (data) => {
-        appData.value = data;
-    }
-
-    const updateSetting = (setting) => {
-        appSetting.value = setting;
-        handleWindowResize();
-    }
-	
-	// 更新元素
-	const updateElements = () => {
-		const solarData = appData.value.solarData;
-
-        // 转换角度为弧度
-        const longitude = appData.value.longitude * Math.PI / 180;
-        const latitude = appData.value.latitude * Math.PI / 180;
-		const declination = solarData.solarPosition.latitude * Math.PI / 180;
-		const ascension = solarData.solarPosition.longitude * Math.PI / 180;
-
-        // 更新阴影球面位置
-        shadowSphere.rotation.y = ascension;
-        shadowSphere.rotation.z = declination;
-
-        // 更新太阳光线指针
-        if (appSetting.value.isSunRayPointerToggle) {
-            if (!scene.children.includes(sunRayPointer)) {
-                scene.add(sunRayPointer);
-            }
-            sunRayPointer.position.x = SUN_RAY_POINTER_HEIGHT / 2 * Math.cos(ascension) * Math.cos(declination);
-            sunRayPointer.position.y = SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(declination);
-            sunRayPointer.position.z = - SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(ascension) * Math.cos(declination);
-            sunRayPointer.rotation.y = ascension;
-            sunRayPointer.rotation.z = declination - Math.PI / 2;
-        } else if (scene.children.includes(sunRayPointer)) {
-            scene.remove(sunRayPointer);
-        }
-
-        // 更新图钉位置
-        if (appSetting.value.isPinToggle) {
-            if (!scene.children.includes(pin)) {
-				scene.add(pin);
-			}
-            pin.position.x = EARTH_RADIUS * Math.cos(longitude) * Math.cos(latitude);
-            pin.position.y = EARTH_RADIUS * Math.sin(latitude);
-            pin.position.z = - EARTH_RADIUS * Math.sin(longitude) * Math.cos(latitude);
-            pin.rotation.y = longitude;
-            pin.rotation.z = latitude - Math.PI / 2;
-        } else if (scene.children.includes(pin)) {
-            scene.remove(pin);
-        }
-
-        // 更新经纬网位置
-        if (appSetting.value.isGridToggle) {
-            if (!scene.children.includes(grid)) {
-                scene.add(grid);
-            }
-        } else if (scene.children.includes(grid)) {
-            scene.remove(grid);
-        }
-	};
-	
-	// 动画循环
-	const animate = () => {
-		animationId = requestAnimationFrame(animate);
-		controls.update();
-		updateElements();
-		renderer.render(scene, camera);
-	};
-
-    // 响应窗口大小变化
-    const handleWindowResize = () => {
-        const sceneToggle = appSetting.value.isSceneToggle;
-        let sceneToggleCount = 0;
-        for (const value of sceneToggle) {
-            if (value) {
-                sceneToggleCount++;
-            }
-        }
-
-        // 小于800像素宽：竖向排列
-        const container = sceneContainer.value.parentElement;
-        let width = container.clientWidth, height = container.clientHeight;
-        if (container.clientWidth < 800) {
-            height /= sceneToggleCount;
-        } else {
-            width /= sceneToggleCount;
-        }
-
-        camera.aspect = width / height;
-	    camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-    };
-
-    // 创建新场景
-    const containerElement = sceneContainer.value;
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-
-    // 创建相机
-    camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
-
-    // 创建渲染器
-    renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        powerPreference: "high-performance" // 启用高性能模式
-    });
-    containerElement.appendChild(renderer.domElement);
-
-    // 添加轨道控制器
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // 允许相机惯性
-    controls.dampingFactor = CONTROLS_DAMPING_FACTOR;
-    controls.enablePan = false; // 禁止平移
-    controls.enableZoom = false; // 禁止缩放
-    controls.enableRotate = true; // 允许旋转
-
-    // 添加环境光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0);
-    scene.add(ambientLight);
-
-    const unsubscriberData = subscribeData(updateData);
-    const unsubscriberSetting = subscribeSetting(updateSetting);
-
-    const cameraHeight = appData.value.latitude * Math.PI / 180;
-    const cameraDirection = appData.value.longitude * Math.PI / 180;
-    camera.position.x = CAMERA_DISTANCE * Math.cos(cameraDirection) * Math.cos(cameraHeight);
-    camera.position.y = CAMERA_DISTANCE * Math.sin(cameraHeight);
-    camera.position.z = - CAMERA_DISTANCE * Math.sin(cameraDirection) * Math.cos(cameraHeight);
-    camera.lookAt(0, 0, 0);
-
     createEarth();
     createShadowSphere();
     createSunRayPointer();
     createPin();
     createGrid();
-    animate();
+};
 
-    handleWindowResize();
-    window.addEventListener('resize', handleWindowResize);
+// 更新元素
+const updateElements = () => {
+	const solarData = baseRef.value.getAppData().solarData;
 
-    onUnmounted(() => {
-        unsubscriberData();
-        unsubscriberSetting();
+    // 转换角度为弧度
+    const longitude = baseRef.value.getAppData().longitude * Math.PI / 180;
+    const latitude = baseRef.value.getAppData().latitude * Math.PI / 180;
+	const declination = solarData.solarPosition.latitude * Math.PI / 180;
+	const ascension = solarData.solarPosition.longitude * Math.PI / 180;
 
-        if (animationId) {
-            cancelAnimationFrame(animationId);
+    // 更新阴影球面位置
+    shadowSphere.rotation.y = ascension;
+    shadowSphere.rotation.z = declination;
+
+    // 更新太阳光线指针
+    if (baseRef.value.getAppSetting().isSunRayPointerToggle) {
+        if (!baseRef.value.getScene().children.includes(sunRayPointer)) {
+            baseRef.value.getScene().add(sunRayPointer);
         }
+        sunRayPointer.position.x = SUN_RAY_POINTER_HEIGHT / 2 * Math.cos(ascension) * Math.cos(declination);
+        sunRayPointer.position.y = SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(declination);
+        sunRayPointer.position.z = - SUN_RAY_POINTER_HEIGHT / 2 * Math.sin(ascension) * Math.cos(declination);
+        sunRayPointer.rotation.y = ascension;
+        sunRayPointer.rotation.z = declination - Math.PI / 2;
+    } else if (baseRef.value.getScene().children.includes(sunRayPointer)) {
+        baseRef.value.getScene().remove(sunRayPointer);
+    }
 
-        window.removeEventListener('resize', handleWindowResize);
+    // 更新图钉位置
+    if (baseRef.value.getAppSetting().isPinToggle) {
+        if (!baseRef.value.getScene().children.includes(pin)) {
+			baseRef.value.getScene().add(pin);
+		}
+        pin.position.x = EARTH_RADIUS * Math.cos(longitude) * Math.cos(latitude);
+        pin.position.y = EARTH_RADIUS * Math.sin(latitude);
+        pin.position.z = - EARTH_RADIUS * Math.sin(longitude) * Math.cos(latitude);
+        pin.rotation.y = longitude;
+        pin.rotation.z = latitude - Math.PI / 2;
+    } else if (baseRef.value.getScene().children.includes(pin)) {
+        baseRef.value.getScene().remove(pin);
+    }
 
-        if (containerElement && renderer?.domElement) {
-            containerElement.removeChild(renderer.domElement);
+    // 更新经纬网位置
+    if (baseRef.value.getAppSetting().isGridToggle) {
+        if (!baseRef.value.getScene().children.includes(grid)) {
+            baseRef.value.getScene().add(grid);
         }
-        renderer?.dispose();
-        controls?.dispose();
-    });
+    } else if (baseRef.value.getScene().children.includes(grid)) {
+        baseRef.value.getScene().remove(grid);
+    }
 };
 
 onMounted(() => {
     createScene();
+    baseRef.value.setUpdateElements(updateElements);
 });
 </script>
 

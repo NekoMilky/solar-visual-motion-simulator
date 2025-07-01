@@ -1,18 +1,13 @@
 <template>
-    <div ref="sceneContainer"></div>
+    <Base ref="baseRef" />
 </template>
 
 <script setup>
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { onMounted, onUnmounted, ref } from 'vue';
-import { subscribeData } from '../utils/AppData.js';
-import { subscribeSetting } from '../utils/AppSetting.js';
+import { onMounted, ref } from 'vue';
+import Base from './Base.vue';
 
-const sceneContainer = ref(null);
-
-const appData = ref({});
-const appSetting = ref({});
+const baseRef = ref(null);
 
 // 定义固定常数
 const SKY_COLORS = {
@@ -56,23 +51,28 @@ const SUN_TRAJECTORY_WIDTH = 0.05;
 const POLE_STAR_POINTER_RADIUS = 0.02;
 const DIRECTION_LABEL_SIZE = 0.3;
 const DIRECTION_LABEL_RADIUS = GROUND_RADIUS + DIRECTION_LABEL_SIZE;
-
-const CONTROLS_DAMPING_FACTOR = 0.05;
 const FONT_SIZE = 64;
-const CAMERA_FOV = 75;
-const CAMERA_NEAR = 0.1;
-const CAMERA_FAR = 100;
-const CAMERA_DISTANCE = 7.5;
-const CAMERA_HEIGHT = Math.PI / 6;
-const CAMERA_DIRECTION = 5 * Math.PI / 4;
 
-let scene, camera, renderer, controls;
+const CAMERA_DISTANCE = 7.5;
+const CAMERA_DIRECTION = 3 * Math.PI / 4;
+const CAMERA_HEIGHT = Math.PI / 6;
+
 let sun, sunTrajectory, poleStarPointer, directionSprites;
-let ambientLight;
-let animationId = null;
 
 // 创建场景
 const createScene = () => {
+    baseRef.value.createScene(
+        {
+            color: SKY_COLORS.daytime,
+            transparent: false
+        },
+        {
+            distance: CAMERA_DISTANCE, 
+            direction: CAMERA_DIRECTION, 
+            height: CAMERA_HEIGHT
+        }
+    );
+
     // 创建地平面
 	const createGround = () => {
 		// 正面材质 - 绿色带白色十字线
@@ -133,12 +133,12 @@ const createScene = () => {
 		const groundFront = new THREE.Mesh(geometry, frontMaterial);
 		groundFront.position.set(0, 0, 0);
 		groundFront.rotation.set(- Math.PI / 2, 0, 0);
-		scene.add(groundFront);
+		baseRef.value.getScene().add(groundFront);
 	
 		const groundBack = new THREE.Mesh(geometry, backMaterial);
 		groundBack.position.set(0, 0, 0);
 		groundBack.rotation.set(- Math.PI / 2, 0, 0);
-		scene.add(groundBack);
+		baseRef.value.getScene().add(groundBack);
 	};
 	
 	// 创建天球
@@ -157,7 +157,7 @@ const createScene = () => {
 		const celestialSphere = new THREE.Mesh(geometry, material);
         celestialSphere.position.set(0, 0, 0);
         celestialSphere.rotation.set(0, 0, 0);
-		scene.add(celestialSphere);
+		baseRef.value.getScene().add(celestialSphere);
 	};
 	
 	// 创建太阳
@@ -171,7 +171,7 @@ const createScene = () => {
             color: 0xffff00 
         });
 		sun = new THREE.Mesh(geometry, material);
-		scene.add(sun);
+		baseRef.value.getScene().add(sun);
 	};
 	
 	// 创建太阳视运动轨迹
@@ -230,208 +230,9 @@ const createScene = () => {
 			sprite.scale.setScalar(DIRECTION_LABEL_SIZE);
 	
 			directionSprites.push(sprite);
-			scene.add(sprite);
+			baseRef.value.getScene().add(sprite);
 		});
 	};
-
-    // 更新数据
-    const updateData = (data) => {
-        appData.value = data;
-    }
-
-    const updateSetting = (setting) => {
-        appSetting.value = setting;
-        handleWindowResize();
-    }
-	
-	// 更新元素
-	const updateElements = () => {
-		const solarData = appData.value.solarData;
-	
-		// 转换角度为弧度
-		const declination = solarData.solarPosition.latitude * Math.PI / 180;
-		const height = solarData.solarHeight * Math.PI / 180;
-		const direction = (solarData.solarDirection - 90) * Math.PI / 180;
-		const latitude = appData.value.latitude * Math.PI / 180;
-
-        const isNight = height < 0;
-	
-		// 计算太阳显示位置
-		sun.position.x = GROUND_RADIUS * Math.cos(direction) * Math.cos(height);
-		sun.position.y = GROUND_RADIUS * Math.sin(height);
-		sun.position.z = GROUND_RADIUS * Math.sin(direction) * Math.cos(height);
-	
-		// 计算太阳视运动轨迹显示位置
-		if (appSetting.value.isSunTrajectoryToggle) {
-			if (!scene.children.includes(sunTrajectory)) {
-				scene.add(sunTrajectory);
-			}
-			sunTrajectory.position.y = GROUND_RADIUS * Math.sin(declination) * Math.sin(latitude);
-			sunTrajectory.position.z = - GROUND_RADIUS * Math.sin(declination) * Math.cos(latitude);
-			sunTrajectory.rotation.x = latitude;
-			sunTrajectory.scale.setScalar(Math.cos(declination));
-		} else if (scene.children.includes(sunTrajectory)) {
-			scene.remove(sunTrajectory);
-		}
-	
-		// 计算北极星指针显示位置
-		if (appSetting.value.isPoleStarPointerToggle) {
-			if (!scene.children.includes(poleStarPointer)) {
-				scene.add(poleStarPointer);
-			}
-			poleStarPointer.position.y = GROUND_RADIUS / 2 * Math.sin(latitude);
-			poleStarPointer.position.z = - GROUND_RADIUS / 2 * Math.cos(latitude);
-			poleStarPointer.rotation.x = latitude - Math.PI / 2;
-		} else if (scene.children.includes(poleStarPointer)) {
-			scene.remove(poleStarPointer);
-		}
-	
-		// 更新方位标签
-		const directions = ['北', '东', '南', '西'];
-		if (latitude == Math.PI / 2) {
-			directions.fill('南');
-		} else if (latitude == -Math.PI / 2) {
-			directions.fill('北');
-		}
-		directions.forEach((direction, index) => {
-			const canvas = document.createElement('canvas');
-			const context = canvas.getContext('2d');
-			context.font = `${FONT_SIZE}px Arial`;
-			const textWidth = context.measureText(direction).width;
-	
-			canvas.width = textWidth;
-			canvas.height = FONT_SIZE;
-			context.font = `${FONT_SIZE}px Arial`;
-			context.fillStyle = isNight ? 'white' : 'black';
-			context.textBaseline = 'middle';
-			context.fillText(direction, 0, FONT_SIZE / 2);
-	
-			const texture = new THREE.CanvasTexture(canvas);
-			const spriteMaterial = directionSprites[index].material;
-			spriteMaterial.map = texture;
-			spriteMaterial.needsUpdate = true;
-		});
-	
-		// 动态计算环境光参数
-		let lightParams;
-		if (height <= LIGHT_PARAMS.night.heightThreshold) {
-			lightParams = LIGHT_PARAMS.night;
-		} 
-		else if (height <= LIGHT_PARAMS.nautical.heightThreshold) {
-			const t = (height - LIGHT_PARAMS.night.heightThreshold) / (LIGHT_PARAMS.nautical.heightThreshold - LIGHT_PARAMS.night.heightThreshold);
-			lightParams = {
-				intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.night.intensity, LIGHT_PARAMS.nautical.intensity, t),
-				color: LIGHT_PARAMS.night.color.clone().lerp(LIGHT_PARAMS.nautical.color, t)
-			};
-		}
-		else if (height <= LIGHT_PARAMS.civil.heightThreshold) {
-			const t = (height - LIGHT_PARAMS.nautical.heightThreshold) / (LIGHT_PARAMS.civil.heightThreshold - LIGHT_PARAMS.nautical.heightThreshold);
-			lightParams = {
-				intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.nautical.intensity, LIGHT_PARAMS.civil.intensity, t),
-				color: LIGHT_PARAMS.nautical.color.clone().lerp(LIGHT_PARAMS.civil.color, t)
-			};
-		}
-		else if (height <= LIGHT_PARAMS.sunrise.heightThreshold) {
-			const t = (height - LIGHT_PARAMS.civil.heightThreshold) / (LIGHT_PARAMS.sunrise.heightThreshold - LIGHT_PARAMS.civil.heightThreshold);
-			lightParams = {
-				intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.civil.intensity, LIGHT_PARAMS.sunrise.intensity, t),
-				color: LIGHT_PARAMS.civil.color.clone().lerp(LIGHT_PARAMS.sunrise.color, t)
-			};
-		}
-		else {
-			const t = Math.min(1, height / LIGHT_PARAMS.day.heightThreshold);
-			lightParams = {
-				intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.sunrise.intensity, LIGHT_PARAMS.day.intensity, t),
-				color: LIGHT_PARAMS.sunrise.color.clone().lerp(LIGHT_PARAMS.day.color, t)
-			};
-		}
-		ambientLight.intensity = lightParams.intensity;
-		ambientLight.color.copy(lightParams.color);
-
-		// 动态计算背景色
-		let skyColor;
-		if (height <= -Math.PI / 6) { // 天文晨光                   
-			skyColor = SKY_COLORS.astronomical;
-		} else if (height <= -Math.PI / 12) { // 航海晨光          
-			const t = (height + Math.PI / 6) / (Math.PI / 12);
-			skyColor = SKY_COLORS.astronomical.clone().lerp(SKY_COLORS.nautical, t);
-		} else if (height <= -Math.PI / 36) { // 民用晨光     
-			const t = (height + Math.PI / 12) / (Math.PI / 18);
-			skyColor = SKY_COLORS.nautical.clone().lerp(SKY_COLORS.civil, t);
-		} else if (height <= 0) { // 日出边缘             
-			const t = (height + Math.PI / 36) / (Math.PI / 36);
-			skyColor = SKY_COLORS.civil.clone().lerp(SKY_COLORS.sunriseEdge, t);
-		} else { // 白天   
-			const t = Math.min(1, height / (Math.PI / 12)); 
-			skyColor = SKY_COLORS.sunriseEdge.clone().lerp(SKY_COLORS.daytime, t);
-		}
-		scene.background = skyColor;
-	};
-	
-	// 动画循环
-	const animate = () => {
-		animationId = requestAnimationFrame(animate);
-		controls.update();
-		updateElements();
-		renderer.render(scene, camera);
-	};
-
-    // 响应窗口大小变化
-    const handleWindowResize = () => {
-        const sceneToggle = appSetting.value.isSceneToggle;
-        let sceneToggleCount = 0;
-        for (const value of sceneToggle) {
-            if (value) {
-                sceneToggleCount++;
-            }
-        }
-
-        // 小于800像素宽：竖向排列
-        const container = sceneContainer.value.parentElement;
-        let width = container.clientWidth, height = container.clientHeight;
-        if (container.clientWidth < 800) {
-            height /= sceneToggleCount;
-        } else {
-            width /= sceneToggleCount;
-        }
-
-        camera.aspect = width / height;
-	    camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-    };
-
-    // 创建新场景
-    const containerElement = sceneContainer.value;
-    scene = new THREE.Scene();
-    scene.background = SKY_COLORS.daytime;
-
-    // 创建相机
-    camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
-    camera.position.x = CAMERA_DISTANCE * Math.cos(CAMERA_DIRECTION) * Math.cos(CAMERA_HEIGHT);
-    camera.position.y = CAMERA_DISTANCE * Math.sin(CAMERA_HEIGHT);
-    camera.position.z = CAMERA_DISTANCE * Math.sin(CAMERA_DIRECTION) * Math.cos(CAMERA_HEIGHT);
-    camera.lookAt(0, 0, 0);
-
-    // 创建渲染器
-    renderer = new THREE.WebGLRenderer({ 
-        antialias: true
-    });
-    containerElement.appendChild(renderer.domElement);
-
-    // 添加轨道控制器
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // 允许相机惯性
-    controls.dampingFactor = CONTROLS_DAMPING_FACTOR;
-    controls.enablePan = false; // 禁止平移
-    controls.enableZoom = true; // 允许缩放
-    controls.enableRotate = true; // 允许旋转
-
-    // 添加环境光
-    ambientLight = new THREE.AmbientLight(0xffffff, 0);
-    scene.add(ambientLight);
-
-    const unsubscriberData = subscribeData(updateData);
-    const unsubscriberSetting = subscribeSetting(updateSetting);
 
     createGround();
     createCelestialSphere();
@@ -439,31 +240,135 @@ const createScene = () => {
     createSunTrajectory();
     createPoleStarPointer();
     createDirectionLabels();
-    animate();
+};
 
-    handleWindowResize();
-    window.addEventListener('resize', handleWindowResize);
+// 更新元素
+const updateElements = () => {
+	const solarData = baseRef.value.getAppData().solarData;
 
-    onUnmounted(() => {
-        unsubscriberData();
-        unsubscriberSetting();
+	// 转换角度为弧度
+	const declination = solarData.solarPosition.latitude * Math.PI / 180;
+	const height = solarData.solarHeight * Math.PI / 180;
+	const direction = (solarData.solarDirection - 90) * Math.PI / 180;
+	const latitude = baseRef.value.getAppData().latitude * Math.PI / 180;
 
-        if (animationId) {
-            cancelAnimationFrame(animationId);
-        }
+    const isNight = height < 0;
 
-        window.removeEventListener('resize', handleWindowResize);
+	// 计算太阳显示位置
+	sun.position.x = GROUND_RADIUS * Math.cos(direction) * Math.cos(height);
+	sun.position.y = GROUND_RADIUS * Math.sin(height);
+	sun.position.z = GROUND_RADIUS * Math.sin(direction) * Math.cos(height);
 
-        if (containerElement && renderer?.domElement) {
-            containerElement.removeChild(renderer.domElement);
-        }
-        renderer?.dispose();
-        controls?.dispose();
-    });
+	// 计算太阳视运动轨迹显示位置
+	if (baseRef.value.getAppSetting().isSunTrajectoryToggle) {
+		if (!baseRef.value.getScene().children.includes(sunTrajectory)) {
+			baseRef.value.getScene().add(sunTrajectory);
+		}
+		sunTrajectory.position.y = GROUND_RADIUS * Math.sin(declination) * Math.sin(latitude);
+		sunTrajectory.position.z = - GROUND_RADIUS * Math.sin(declination) * Math.cos(latitude);
+		sunTrajectory.rotation.x = latitude;
+		sunTrajectory.scale.setScalar(Math.cos(declination));
+	} else if (baseRef.value.getScene().children.includes(sunTrajectory)) {
+		baseRef.value.getScene().remove(sunTrajectory);
+	}
+
+	// 计算北极星指针显示位置
+	if (baseRef.value.getAppSetting().isPoleStarPointerToggle) {
+		if (!baseRef.value.getScene().children.includes(poleStarPointer)) {
+			baseRef.value.getScene().add(poleStarPointer);
+		}
+		poleStarPointer.position.y = GROUND_RADIUS / 2 * Math.sin(latitude);
+		poleStarPointer.position.z = - GROUND_RADIUS / 2 * Math.cos(latitude);
+		poleStarPointer.rotation.x = latitude - Math.PI / 2;
+	} else if (baseRef.value.getScene().children.includes(poleStarPointer)) {
+		baseRef.value.getScene().remove(poleStarPointer);
+	}
+
+	// 更新方位标签
+	const directions = ['北', '东', '南', '西'];
+	if (latitude == Math.PI / 2) {
+		directions.fill('南');
+	} else if (latitude == -Math.PI / 2) {
+		directions.fill('北');
+	}
+	directions.forEach((direction, index) => {
+		const canvas = document.createElement('canvas');
+		const context = canvas.getContext('2d');
+		context.font = `${FONT_SIZE}px Arial`;
+		const textWidth = context.measureText(direction).width;
+
+		canvas.width = textWidth;
+		canvas.height = FONT_SIZE;
+		context.font = `${FONT_SIZE}px Arial`;
+		context.fillStyle = isNight ? 'white' : 'black';
+		context.textBaseline = 'middle';
+		context.fillText(direction, 0, FONT_SIZE / 2);
+
+		const texture = new THREE.CanvasTexture(canvas);
+		const spriteMaterial = directionSprites[index].material;
+		spriteMaterial.map = texture;
+		spriteMaterial.needsUpdate = true;
+	});
+
+	// 动态计算环境光参数
+	let lightParams;
+	if (height <= LIGHT_PARAMS.night.heightThreshold) {
+		lightParams = LIGHT_PARAMS.night;
+	} 
+	else if (height <= LIGHT_PARAMS.nautical.heightThreshold) {
+		const t = (height - LIGHT_PARAMS.night.heightThreshold) / (LIGHT_PARAMS.nautical.heightThreshold - LIGHT_PARAMS.night.heightThreshold);
+		lightParams = {
+			intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.night.intensity, LIGHT_PARAMS.nautical.intensity, t),
+			color: LIGHT_PARAMS.night.color.clone().lerp(LIGHT_PARAMS.nautical.color, t)
+		};
+	}
+	else if (height <= LIGHT_PARAMS.civil.heightThreshold) {
+		const t = (height - LIGHT_PARAMS.nautical.heightThreshold) / (LIGHT_PARAMS.civil.heightThreshold - LIGHT_PARAMS.nautical.heightThreshold);
+		lightParams = {
+			intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.nautical.intensity, LIGHT_PARAMS.civil.intensity, t),
+			color: LIGHT_PARAMS.nautical.color.clone().lerp(LIGHT_PARAMS.civil.color, t)
+		};
+	}
+	else if (height <= LIGHT_PARAMS.sunrise.heightThreshold) {
+		const t = (height - LIGHT_PARAMS.civil.heightThreshold) / (LIGHT_PARAMS.sunrise.heightThreshold - LIGHT_PARAMS.civil.heightThreshold);
+		lightParams = {
+			intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.civil.intensity, LIGHT_PARAMS.sunrise.intensity, t),
+			color: LIGHT_PARAMS.civil.color.clone().lerp(LIGHT_PARAMS.sunrise.color, t)
+		};
+	}
+	else {
+		const t = Math.min(1, height / LIGHT_PARAMS.day.heightThreshold);
+		lightParams = {
+			intensity: THREE.MathUtils.lerp(LIGHT_PARAMS.sunrise.intensity, LIGHT_PARAMS.day.intensity, t),
+			color: LIGHT_PARAMS.sunrise.color.clone().lerp(LIGHT_PARAMS.day.color, t)
+		};
+	}
+	baseRef.value.getAmbientLight().intensity = lightParams.intensity;
+	baseRef.value.getAmbientLight().color.copy(lightParams.color);
+
+	// 动态计算背景色
+	let skyColor;
+	if (height <= -Math.PI / 6) { // 天文晨光                   
+		skyColor = SKY_COLORS.astronomical;
+	} else if (height <= -Math.PI / 12) { // 航海晨光          
+		const t = (height + Math.PI / 6) / (Math.PI / 12);
+		skyColor = SKY_COLORS.astronomical.clone().lerp(SKY_COLORS.nautical, t);
+	} else if (height <= -Math.PI / 36) { // 民用晨光     
+		const t = (height + Math.PI / 12) / (Math.PI / 18);
+		skyColor = SKY_COLORS.nautical.clone().lerp(SKY_COLORS.civil, t);
+	} else if (height <= 0) { // 日出边缘             
+		const t = (height + Math.PI / 36) / (Math.PI / 36);
+		skyColor = SKY_COLORS.civil.clone().lerp(SKY_COLORS.sunriseEdge, t);
+	} else { // 白天   
+		const t = Math.min(1, height / (Math.PI / 12)); 
+		skyColor = SKY_COLORS.sunriseEdge.clone().lerp(SKY_COLORS.daytime, t);
+	}
+	baseRef.value.getScene().background = skyColor;
 };
 
 onMounted(() => {
     createScene();
+    baseRef.value.setUpdateElements(updateElements);
 });
 </script>
 

@@ -13,12 +13,12 @@ let latitude = safeLocalStorage.get('latitude') ?? 39.9;
 let utcDate = new Date(1970, 1, 0, 0, 0, 0);
 
 const notifyDataSubscribers = () => {
-    dataSubscribers.forEach(callback => callback(getData()));
+    dataSubscribers.forEach(callback => callback(getData(), false));
 };
 
 const subscribeData = (callback) => {
     dataSubscribers.add(callback);
-    callback(getData())
+    callback(getData(), true);
     return () => dataSubscribers.delete(callback);
 };
 

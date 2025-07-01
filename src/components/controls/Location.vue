@@ -27,7 +27,7 @@
             />
 			°
 		</div>
-		<div class="earth-preview" ref="earthContainer"></div>
+		<Base class="earth-preview" ref="baseRef" />
     </DraggableBox>
 </template>
 
@@ -35,16 +35,16 @@
 import earthTexture from '@/assets/images/texture/earth_surface.jpg';
 import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { subscribeData, setLocation } from '../../utils/AppData.js';
 import DraggableBox from './DraggableBox.vue';
 import InputField from './InputField.vue';
+import Base from '../../views/Base.vue';
 
 const draggableRef = ref(null);
 const longitudeInput = ref(null);
 const latitudeInput = ref(null);
 
-const earthContainer = ref(null);
+const baseRef = ref(null);
 
 const longitude = ref(0);
 const latitude = ref(0);
@@ -55,20 +55,35 @@ const PIN_RADIUS = 0.01;
 const PIN_HEIGHT = 0.3;
 const PIN_TOP_RADIUS = 0.02; 
 
-const SCENE_WIDTH = 300;
-const SCENE_HEIGHT = SCENE_WIDTH;
-const CONTROLS_DAMPING_FACTOR = 0.05;
-const CAMERA_FOV = 75;
-const CAMERA_NEAR = 0.1;
-const CAMERA_FAR = 100;
+const SCENE_SIZE = 300;
 const CAMERA_DISTANCE = 2;
 
-let scene, camera, renderer, controls;
 let earth, pin;
 let isDraggingEarth = false;
-let animationId = null;
 
 const initEarthScene = () => {
+    baseRef.value.createScene(
+        {
+            color: new THREE.Color(0x000000),
+            transparent: true
+        },
+        {
+            distance: CAMERA_DISTANCE, 
+            useCurrentPosition: true
+        },
+        {
+            damping: true,
+            pan: false,
+            zoom: false,
+            rotate: true
+        },
+        {
+            fixed: true,
+            width: SCENE_SIZE,
+            height: SCENE_SIZE
+        }
+    );
+
     // 创建地球
     const createEarth = () => {
         const geometry = new THREE.SphereGeometry(
@@ -90,7 +105,7 @@ const initEarthScene = () => {
         earth = new THREE.Mesh(geometry, material);
         earth.position.set(0, 0, 0);
         earth.rotation.set(0, 0, 0);
-        scene.add(earth);
+        baseRef.value.getScene().add(earth);
     }
 
     // 创建图钉
@@ -122,40 +137,7 @@ const initEarthScene = () => {
         pin.add(cylinder);
         pin.add(sphere);
         pin.rotation.x = 0;
-        scene.add(pin);
-    };
-
-    // 更新元素
-    const updateElements = () => {
-        // 转换角度为弧度
-        const longitudeObject = longitude.value * Math.PI / 180;
-        const latitudeObject = latitude.value * Math.PI / 180;
-
-        // 控制器在组件可被拖动时禁用
-        controls.enabled = !draggableRef.value?.isDraggable ?? true;
-
-        // 更新地球位置
-        if (!isDraggingEarth) {
-            camera.position.x = CAMERA_DISTANCE * Math.cos(longitudeObject) * Math.cos(latitudeObject);
-            camera.position.y = CAMERA_DISTANCE * Math.sin(latitudeObject);
-            camera.position.z = - CAMERA_DISTANCE * Math.sin(longitudeObject) * Math.cos(latitudeObject);
-            camera.lookAt(0, 0, 0);
-        }
-
-        // 更新图钉位置
-        pin.position.x = EARTH_RADIUS * Math.cos(longitudeObject) * Math.cos(latitudeObject);
-        pin.position.y = EARTH_RADIUS * Math.sin(latitudeObject);
-        pin.position.z = - EARTH_RADIUS * Math.sin(longitudeObject) * Math.cos(latitudeObject);
-        pin.rotation.y = longitudeObject;
-        pin.rotation.z = latitudeObject - Math.PI / 2;
-    }
-    
-    // 动画循环
-    const animate = () => {
-		animationId = requestAnimationFrame(animate);
-		controls.update();
-		updateElements();
-		renderer.render(scene, camera);
+        baseRef.value.getScene().add(pin);
     };
 
     const onDragStart = () => {
@@ -169,81 +151,47 @@ const initEarthScene = () => {
     // 根据地球更新坐标
     const handleDraggingEarth = () => {
         if (isDraggingEarth) {
-            longitude.value = parseFloat(Math.atan2(-camera.position.z, camera.position.x) * 180 / Math.PI).toFixed(1);
-            latitude.value = parseFloat(Math.asin(camera.position.y / CAMERA_DISTANCE) * 180 / Math.PI).toFixed(1);
+            longitude.value = parseFloat((Math.atan2(- baseRef.value.getCamera().position.z, baseRef.value.getCamera().position.x) * 180 / Math.PI).toFixed(1));
+            latitude.value = parseFloat((Math.asin(baseRef.value.getCamera().position.y / CAMERA_DISTANCE) * 180 / Math.PI).toFixed(1));
             updateLocation();
         }
     }
 
-    // 响应窗口大小变化
-	const handleWindowResize = () => {
-		camera.aspect = SCENE_WIDTH / SCENE_HEIGHT;
-		camera.updateProjectionMatrix();
-		renderer.setSize(SCENE_WIDTH, SCENE_HEIGHT);
-        renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
-	};
+    baseRef.value.getRenderer().domElement.addEventListener('mousedown', onDragStart);
+    baseRef.value.getRenderer().domElement.addEventListener('touchstart', onDragStart);
+    baseRef.value.getRenderer().domElement.addEventListener('mouseup', onDragEnd);
+    baseRef.value.getRenderer().domElement.addEventListener('touchend', onDragEnd);
 
-    // 创建新场景
-    const containerElement = earthContainer.value;
-    scene = new THREE.Scene();
-
-    // 创建相机
-    camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / window.innerHeight, CAMERA_NEAR, CAMERA_FAR);
-    camera.position.set(CAMERA_DISTANCE, 0, 0);
-    camera.lookAt(0, 0, 0);
-
-    // 创建渲染器
-    renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        powerPreference: "high-performance", // 启用高性能模式
-        alpha: true // 启用透明背景
-    });
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-    containerElement.appendChild(renderer.domElement);
-    renderer.domElement.addEventListener('mousedown', onDragStart);
-    renderer.domElement.addEventListener('touchstart', onDragStart);
-    renderer.domElement.addEventListener('mouseup', onDragEnd);
-    renderer.domElement.addEventListener('touchend', onDragEnd);
-
-    // 添加轨道控制器
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // 允许相机惯性
-    controls.dampingFactor = CONTROLS_DAMPING_FACTOR;
-    controls.enablePan = false; // 禁止平移
-    controls.enableZoom = false; // 禁止缩放
-    controls.enableRotate = true; // 允许旋转
-    controls.addEventListener('change', handleDraggingEarth);
-
-    // 添加环境光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0);
-    scene.add(ambientLight);
+    baseRef.value.getControls().addEventListener('change', handleDraggingEarth);
 
     createEarth();
     createPin();
-    animate();
-
-    handleWindowResize();
-    window.addEventListener('resize', handleWindowResize);
-
-    onUnmounted(() => {
-        if (animationId) {
-            cancelAnimationFrame(animationId);
-        }
-
-        controls.removeEventListener('change', handleDraggingEarth);
-        window.removeEventListener('resize', handleWindowResize);
-
-        if (containerElement && renderer?.domElement) {
-            renderer.domElement.removeEventListener('mousedown', onDragStart);
-            renderer.domElement.removeEventListener('touchstart', onDragStart);
-            renderer.domElement.removeEventListener('mouseup', onDragEnd);
-            renderer.domElement.removeEventListener('touchend', onDragEnd);
-            containerElement.removeChild(renderer.domElement);
-        }
-        renderer?.dispose();
-        controls?.dispose();
-    });
 };
+
+// 更新元素
+const updateElements = () => {
+    // 转换角度为弧度
+    const longitudeObject = longitude.value * Math.PI / 180;
+    const latitudeObject = latitude.value * Math.PI / 180;
+
+    // 控制器在组件可被拖动时禁用
+    baseRef.value.getControls().enabled = !draggableRef.value?.isDraggable ?? true;
+
+    // 更新地球位置
+    if (!isDraggingEarth) {
+        baseRef.value.getCamera().position.x = CAMERA_DISTANCE * Math.cos(longitudeObject) * Math.cos(latitudeObject);
+        baseRef.value.getCamera().position.y = CAMERA_DISTANCE * Math.sin(latitudeObject);
+        baseRef.value.getCamera().position.z = - CAMERA_DISTANCE * Math.sin(longitudeObject) * Math.cos(latitudeObject);
+        baseRef.value.getCamera().lookAt(0, 0, 0);
+    }
+
+    // 更新图钉位置
+    pin.position.x = EARTH_RADIUS * Math.cos(longitudeObject) * Math.cos(latitudeObject);
+    pin.position.y = EARTH_RADIUS * Math.sin(latitudeObject);
+    pin.position.z = - EARTH_RADIUS * Math.sin(longitudeObject) * Math.cos(latitudeObject);
+    pin.rotation.y = longitudeObject;
+    pin.rotation.z = latitudeObject - Math.PI / 2;
+}
 
 const updateLocation = () => {
     setLocation(longitude.value, latitude.value);
@@ -266,6 +214,7 @@ const updateData = (appData) => {
 onMounted(() => {
     draggableRef.value.setClassName('location-control', 'location_control');
     initEarthScene();
+    baseRef.value.setUpdateElements(updateElements);
     const unsubscriber = subscribeData(updateData);
 
     onUnmounted(() => {

@@ -14,12 +14,12 @@ let isPinToggle = safeLocalStorage.get('is_pin_toggle') ?? true;
 let isSunRayPointerToggle = safeLocalStorage.get('is_sun_ray_pointer_toggle') ?? false;
 
 const notifySettingSubscribers = () => {
-    settingSubscribers.forEach(callback => callback(getSetting()));
+    settingSubscribers.forEach(callback => callback(getSetting(), false));
 };
 
 const subscribeSetting = (callback) => {
     settingSubscribers.add(callback);
-    callback(getSetting())
+    callback(getSetting(), true);
     return () => settingSubscribers.delete(callback);
 };
 
