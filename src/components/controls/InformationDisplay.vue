@@ -1,5 +1,5 @@
 <template>
-    <Draggable ref="draggableRef" :isNight="isNight" customClass="information-display">
+    <DraggableBox ref="draggableRef" :isNight="isNight" customClass="information-display">
 		<div>信息显示:</div>
 		<div>时间: {{ currentTime }}</div>
         <div>太阳直射点经度: {{ solarData.solarPosition?.longitude.toFixed(3) }}°</div>
@@ -29,13 +29,13 @@
             <div>天文曙光始: {{ astronomicalTwilightStartTime }}</div>
             <div>天文暮光终: {{ astronomicalTwilightEndTime }}</div>
         </template>
-    </Draggable>
+    </DraggableBox>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { subscribeData } from '../../utils/AppData.js';
-import Draggable from '../Draggable.vue';
+import DraggableBox from './DraggableBox.vue';
 
 const draggableRef = ref(null);
 

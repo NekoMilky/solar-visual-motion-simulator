@@ -1,5 +1,5 @@
 <template>
-    <Draggable ref="draggableRef" :isNight="isNight" customClass="time-control">
+    <DraggableBox ref="draggableRef" :isNight="isNight" customClass="time-control">
         <div>时间设置:</div>
         <div>
             日期:
@@ -95,14 +95,14 @@
                 }"
             >
         </div>
-    </Draggable>
+    </DraggableBox>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { subscribeData, setDate, setTimeLapse, setTimeSync, setTimeZone } from '../../utils/AppData.js';
-import Draggable from '../Draggable.vue';
-import InputField from '../InputField.vue';
+import DraggableBox from './DraggableBox.vue';
+import InputField from './InputField.vue';
 
 const draggableRef = ref(null);
 const yearInput = ref(null);

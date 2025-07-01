@@ -1,5 +1,5 @@
 <template>
-    <Draggable ref="draggableRef" :isNight="isNight" customClass="location-control">
+    <DraggableBox ref="draggableRef" :isNight="isNight" customClass="location-control">
 		<div>位置设置:</div>
 		<div>
 			经度:
@@ -28,7 +28,7 @@
 			°
 		</div>
 		<div class="earth-preview" ref="earthContainer"></div>
-    </Draggable>
+    </DraggableBox>
 </template>
 
 <script setup>
@@ -37,8 +37,8 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { subscribeData, setLocation } from '../../utils/AppData.js';
-import Draggable from '../Draggable.vue';
-import InputField from '../InputField.vue';
+import DraggableBox from './DraggableBox.vue';
+import InputField from './InputField.vue';
 
 const draggableRef = ref(null);
 const longitudeInput = ref(null);
